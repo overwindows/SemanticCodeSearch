@@ -1,0 +1,9 @@
+diff --git a/src/wandb/settings b/src/wandb/settings
+index a04a8ea..12ec344 100644
+--- a/src/wandb/settings
++++ b/src/wandb/settings
+@@ -1,3 +1,4 @@
+ [default]
+ project = CodeSearchNet
++entity = wuchen
+ 
