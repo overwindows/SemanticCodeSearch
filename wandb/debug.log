@@ -1,0 +1,20 @@
+2020-03-04 08:19:19,510 DEBUG   MainThread:1056 [wandb_config.py:_load_defaults():87] no defaults not found in config-defaults.yaml
+2020-03-04 08:19:19,517 DEBUG   MainThread:1056 [cmd.py:execute():719] Popen(['git', 'cat-file', '--batch-check'], cwd=/home/dev/CodeSearch, universal_newlines=False, shell=None, istream=<valid stream>)
+2020-03-04 08:19:19,523 DEBUG   MainThread:1056 [cmd.py:execute():719] Popen(['git', 'rev-parse', '--show-toplevel'], cwd=/home/dev/CodeSearch, universal_newlines=False, shell=None, istream=None)
+2020-03-04 08:19:19,527 DEBUG   MainThread:1056 [cmd.py:execute():719] Popen(['git', 'status', '--porcelain', '--untracked-files'], cwd=/home/dev/CodeSearch, universal_newlines=False, shell=None, istream=None)
+2020-03-04 08:19:19,545 DEBUG   MainThread:1056 [run_manager.py:__init__():526] Initialized sync for CodeSearchNet/sbsgum40
+2020-03-04 08:19:19,548 INFO    MainThread:1056 [run_manager.py:wrap_existing_process():1093] wrapping existing process 1026
+2020-03-04 08:19:19,548 WARNING MainThread:1056 [io_wrap.py:register():103] SIGWINCH handler was not None: <Handlers.SIG_DFL: 0>
+2020-03-04 08:19:19,551 DEBUG   MainThread:1056 [connectionpool.py:_new_conn():959] Starting new HTTPS connection (1): pypi.org:443
+2020-03-04 08:19:19,580 DEBUG   MainThread:1056 [connectionpool.py:_make_request():437] https://pypi.org:443 "GET /pypi/wandb/json HTTP/1.1" 200 41454
+2020-03-04 08:19:19,594 INFO    MainThread:1056 [run_manager.py:init_run():904] system metrics and metadata threads started
+2020-03-04 08:19:19,594 INFO    MainThread:1056 [run_manager.py:wrap_existing_process():1110] informing user process we are ready to proceed
+2020-03-04 08:19:19,594 INFO    MainThread:1056 [run_manager.py:_sync_etc():1214] entering loop for messages from user process
+2020-03-04 08:19:20,514 INFO    Thread-3  :1056 [run_manager.py:_on_file_modified():673] file/dir modified: /home/dev/CodeSearch/wandb/run-20200304_081916-sbsgum40/config.yaml
+2020-03-05 15:25:05,395 INFO    MainThread:1056 [run_manager.py:_sync_etc():1237] received message from user process: {"save_policy": {"glob": "selfatt-2020-03-04-08-19-16.train_log", "policy": "live"}}
+2020-03-05 15:25:26,208 INFO    MainThread:1056 [run_manager.py:_sync_etc():1237] received message from user process: {"save_policy": {"glob": "selfatt-2020-03-04-08-19-16_model_best.pkl.gz", "policy": "live"}}
+2020-03-05 15:44:27,407 INFO    MainThread:1056 [run_manager.py:_sync_etc():1237] received message from user process: {"exitcode": 0}
+2020-03-05 15:44:27,407 INFO    MainThread:1056 [run_manager.py:_sync_etc():1323] closing log streams and sending exitcode to W&B
+2020-03-05 15:44:27,407 INFO    MainThread:1056 [run_manager.py:shutdown():1020] shutting down system stats and metadata service
+   MainThread:1056 [sbsgum40:run_manager.py:_sync_etc():1323] closing log streams and sending exitcode to W&B
+2020-03-05 15:44:27,407 INFO    MainThread:1056 [sbsgum40:run_manager.py:shutdown():1020] shutting down system stats and metadata service

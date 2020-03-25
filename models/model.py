@@ -82,7 +82,6 @@ class Model(ABC):
     def get_default_hyperparameters(cls) -> Dict[str, Any]:
         return {
                 'batch_size': 200,
-
                 'optimizer': 'Adam',
                 'seed': 0,
                 'dropout_keep_rate': 0.9,
