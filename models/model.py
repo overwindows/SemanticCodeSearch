@@ -263,11 +263,14 @@ class Model(ABC):
                                                              hyperparameters=self.hyperparameters,
                                                              metadata=self.__query_metadata)
             self.ops['query_representations'] = self.__query_encoder.make_model(is_train=is_train)
-
+        
         code_representation_size = next(iter(self.__code_encoders.values())).output_representation_size
         query_representation_size = self.__query_encoder.output_representation_size
         assert code_representation_size == query_representation_size, \
             f'Representations produced for code ({code_representation_size}) and query ({query_representation_size}) cannot differ!'
+        
+        with tf.variable_scope("query_code_bilinear"):
+              self.ops['bilinear_matrix'] = tf.get_variable(name='bilinear_matrix', shape=[query_representation_size, query_representation_size], initializer=tf.random_normal_initializer())
 
     def get_code_token_embeddings(self, language: str) -> Tuple[tf.Tensor, List[str]]:
         with self.__sess.graph.as_default():
@@ -311,6 +314,26 @@ class Model(ABC):
                                              - tf.diag_part(cosine_similarities)
                                              + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
                                                              axis=-1))
+        elif self.hyperparameters['loss'] == 'bilinear-cosine':
+            query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
+            
+            query_norms = tf.norm(query_representations_mapping, axis=-1, keep_dims=True) + 1e-10
+            code_norms = tf.norm(self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
+            cosine_similarities = tf.matmul(query_representations_mapping / query_norms,
+                                            self.ops['code_representations'] / code_norms,
+                                            transpose_a=False,
+                                            transpose_b=True,
+                                            name='code_query_cooccurrence_logits',
+                                            )
+            similarity_scores = cosine_similarities
+            
+            neg_matrix = tf.diag(tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
+            per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
+                                             - tf.diag_part(cosine_similarities)
+                                             + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
+                                                             axis=-1))
+
+
         elif self.hyperparameters['loss'] == 'max-margin':
             logits = tf.matmul(self.ops['query_representations'],
                                self.ops['code_representations'],
@@ -342,6 +365,21 @@ class Model(ABC):
             pointwise_loss *= (1 - tf.eye(tf.shape(pointwise_loss)[0]))
 
             per_sample_loss = tf.reduce_sum(pointwise_loss, axis=-1) / (tf.reduce_sum(tf.cast(tf.greater(pointwise_loss, 0), dtype=tf.float32), axis=-1) + 1e-10)  # B
+        elif self.hyperparameters['loss'] == 'bilinear-softmax':
+            query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
+            logits = tf.matmul(query_representations_mapping,
+                               self.ops['code_representations'],
+                               transpose_a=False,
+                               transpose_b=True,
+                               name='code_query_cooccurrence_logits',
+                               )  # B x B
+
+            similarity_scores = logits
+
+            per_sample_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                labels=tf.range(tf.shape(self.ops['code_representations'])[0]),  # [0, 1, 2, 3, ..., n]
+                logits=logits
+            )
         else:
             raise Exception(f'Unrecognized loss-type "{self.hyperparameters["loss"]}"')
 
@@ -913,7 +951,8 @@ class Model(ABC):
 
         return self.__compute_representations_batched(query_data,
                                                       data_loader_fn=query_data_loader,
-                                                      model_representation_op=self.__ops['query_representations'],
+                                                      #model_representation_op=self.__ops['query_representations'],
+                                                      model_representation_op=tf.matmul(self.__ops['query_representations'], self.__ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping'),
                                                       representation_type=RepresentationType.QUERY)
 
     def get_code_representations(self, code_data: List[Dict[str, Any]]) -> List[Optional[np.ndarray]]:

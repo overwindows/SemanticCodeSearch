@@ -14,6 +14,7 @@ class NeuralBoWModel(Model):
         model_hypers = {
             'code_use_subtokens': False,
             'code_mark_subtoken_end': False,
+            #'loss': 'bilinear-cosine',
             'loss': 'cosine',
             'batch_size': 1000
         }
