@@ -21,7 +21,7 @@ Options:
     --max-files-per-dir INT          Maximum number of files per directory to load for training data.
     --hypers-override HYPERS         JSON dictionary overriding hyperparameter values.
     --hypers-override-file FILE      JSON file overriding hyperparameter values.
-    --model MODELNAME                Choose model type. [default: neuralbowmodel]
+    --model MODELNAME                Choose model type. [default: crossattentionmodel]
     --test-batch-size SIZE           The size of the batches in which to compute MRR. [default: 1000]
     --distance-metric METRIC         The distance metric to use [default: cosine]
     --run-name NAME                  Picks a name for the trained model.
@@ -59,6 +59,7 @@ def run_train(model_class: Type[Model],
               quiet: bool = False,
               max_files_per_dir: Optional[int] = None,
               parallelize: bool = True) -> RichPath:
+    assert parallelize
     model = model_class(hyperparameters, run_name=run_name, model_save_dir=save_folder, log_save_dir=save_folder)
     if os.path.exists(model.model_save_path):
         model = model_restore_helper.restore(RichPath.create(model.model_save_path), is_train=True)
@@ -70,6 +71,7 @@ def run_train(model_class: Type[Model],
         model.train_log("Tokenizing and building vocabulary for code snippets and queries.  This step may take several hours.")
         model.load_metadata(train_data_dirs, max_files_per_dir=max_files_per_dir, parallelize=parallelize)
         model.make_model(is_train=True)
+        
         model.train_log("Starting training run %s of model %s with following hypers:\n%s" % (run_name,
                                                                                              model.__class__.__name__,
                                                                                              str(hyperparameters)))

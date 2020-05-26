@@ -4,12 +4,15 @@ import tensorflow as tf
 from dpu_utils.utils import RichPath
 
 from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+from models import NeuralBoWModel_V1, CrossAttentionModel
 
 
 def get_model_class_from_name(model_name: str) -> Type[Model]:
     model_name = model_name.lower()
     if model_name in ['neuralbow', 'neuralbowmodel']:
         return NeuralBoWModel
+    if model_name in ['neuralbow_v1', 'neuralbowmodel_v1']:
+        return NeuralBoWModel_V1
     elif model_name in ['rnn', 'rnnmodel']:
         return RNNModel
     elif model_name in {'selfatt', 'selfattention', 'selfattentionmodel'}:
@@ -18,6 +21,8 @@ def get_model_class_from_name(model_name: str) -> Type[Model]:
         return ConvolutionalModel
     elif model_name in {'convselfatt', 'convselfattentionmodel'}:
         return ConvSelfAttentionModel
+    elif model_name in {'crossatt', 'crossattention', 'crossattentionmodel'}:
+        return CrossAttentionModel
     else:
         raise Exception("Unknown model '%s'!" % model_name)
 

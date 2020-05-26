@@ -33,3 +33,14 @@ class NBoWEncoder(MaskedSeqEncoder):
                                            sequence_token_embeddings=seq_tokens_embeddings,
                                            sequence_lengths=seq_token_lengths,
                                            sequence_token_masks=seq_token_mask)
+
+    def build_model(self, is_train: bool=False) -> tf.Tensor: 
+        with tf.variable_scope('nbow_encoder_no_pool'):
+            self._make_placeholders()
+
+            seq_token_embeddings = self.embedding_layer(self.placeholders['tokens'])
+            seq_token_mask = self.placeholders['tokens_mask']
+            seq_token_lengths = tf.reduce_sum(seq_token_mask, axis=1)
+        # BxTxD, BxT, B
+        return seq_token_embeddings, seq_token_mask, seq_token_lengths
+

@@ -27,7 +27,7 @@ def run_jobs_in_parallel(all_jobs: List[JobType],
                          worker_fn: Callable[[int, JobType], Iterable[ResultType]],
                          received_result_callback: Callable[[ResultType], None],
                          finished_callback: Callable[[], None],
-                         result_queue_size: int=100) -> None:
+                         result_queue_size: int=1000) -> None:
     """
     Runs jobs in parallel and uses callbacks to collect results.
     :param all_jobs: Job descriptions; one at a time will be parsed into worker_fn.

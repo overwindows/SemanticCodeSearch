@@ -28,6 +28,7 @@ def compute_ranks(src_representations: np.ndarray,
     return np.sum(distances <= correct_elements, axis=-1), distances
 
 
+
 class MrrSearchTester:
     def __init__(self, model_path: RichPath, test_batch_size: int=1000, distance_metric: str='cosine',
                  quiet: bool=False, hypers_override: Optional[Dict[str, Any]]=None) -> None:

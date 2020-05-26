@@ -12,6 +12,8 @@ from dpu_utils.codeutils import split_identifier_into_parts
 from dpu_utils.mlutils import Vocabulary
 
 from .encoder import Encoder, QueryType
+import pickle
+import os
 
 
 class SeqEncoder(Encoder):
@@ -99,25 +101,42 @@ class SeqEncoder(Encoder):
         raw_metadata['token_counter'].update(data_to_load)
 
     @classmethod
-    def finalise_metadata(cls, encoder_label: str, hyperparameters: Dict[str, Any], raw_metadata_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def finalise_metadata(cls, encoder_label: str, hyperparameters: Dict[str, Any], raw_metadata_list: List[Dict[str, Any]], language=None) -> Dict[str, Any]:
         final_metadata = super().finalise_metadata(encoder_label, hyperparameters, raw_metadata_list)
         merged_token_counter = Counter()
-        for raw_metadata in raw_metadata_list:
-            merged_token_counter += raw_metadata['token_counter']
 
-        if hyperparameters['%s_use_bpe' % encoder_label]:
-            token_vocabulary = BpeVocabulary(vocab_size=hyperparameters['%s_token_vocab_size' % encoder_label],
-                                             pct_bpe=hyperparameters['%s_pct_bpe' % encoder_label]
-                                             )
-            token_vocabulary.fit(merged_token_counter)
+        print(encoder_label, language)
+        if encoder_label == 'query':
+            final_metadata_path = '_'.join([encoder_label, 'final_metadata'])
         else:
-            token_vocabulary = Vocabulary.create_vocabulary(tokens=merged_token_counter,
-                                                            max_size=hyperparameters['%s_token_vocab_size' % encoder_label],
-                                                            count_threshold=hyperparameters['%s_token_vocab_count_threshold' % encoder_label])
+            assert encoder_label == 'code' and language
+            final_metadata_path = '_'.join([encoder_label,language,'final_metadata'])
 
-        final_metadata['token_vocab'] = token_vocabulary
-        # Save the most common tokens for use in data augmentation:
-        final_metadata['common_tokens'] = merged_token_counter.most_common(50)
+        if os.path.isfile(final_metadata_path):
+            with open(final_metadata_path,'rb') as final_metadata_file:
+                final_metadata = pickle.load(final_metadata_file)
+        else:
+
+            for raw_metadata in raw_metadata_list:
+                merged_token_counter += raw_metadata['token_counter']
+
+            if hyperparameters['%s_use_bpe' % encoder_label]:
+                token_vocabulary = BpeVocabulary(vocab_size=hyperparameters['%s_token_vocab_size' % encoder_label],
+                                                pct_bpe=hyperparameters['%s_pct_bpe' % encoder_label]
+                                                )
+                token_vocabulary.fit(merged_token_counter)
+            else:
+                token_vocabulary = Vocabulary.create_vocabulary(tokens=merged_token_counter,
+                                                                max_size=hyperparameters['%s_token_vocab_size' % encoder_label],
+                                                                count_threshold=hyperparameters['%s_token_vocab_count_threshold' % encoder_label])
+
+            final_metadata['token_vocab'] = token_vocabulary
+            # Save the most common tokens for use in data augmentation:
+            final_metadata['common_tokens'] = merged_token_counter.most_common(50)
+
+            with open(final_metadata_path, 'wb') as final_metadata_file:
+                pickle.dump(final_metadata, final_metadata_file)
+
         return final_metadata
 
     @classmethod
