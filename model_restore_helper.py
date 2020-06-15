@@ -4,7 +4,7 @@ import tensorflow as tf
 from dpu_utils.utils import RichPath
 
 from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
-from models import NeuralBoWModel_V1, CrossAttentionModel
+from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1
 
 
 def get_model_class_from_name(model_name: str) -> Type[Model]:
@@ -15,6 +15,8 @@ def get_model_class_from_name(model_name: str) -> Type[Model]:
         return NeuralBoWModel_V1
     elif model_name in ['rnn', 'rnnmodel']:
         return RNNModel
+    elif model_name in ['rnn_v1', 'rnnmodel_v1']:
+        return RNNModel_V1
     elif model_name in {'selfatt', 'selfattention', 'selfattentionmodel'}:
         return SelfAttentionModel
     elif model_name in {'1dcnn', 'convolutionalmodel'}:
@@ -34,6 +36,7 @@ def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, 
         saved_data['hyperparameters'].update(hyper_overrides)
 
     model_class = get_model_class_from_name(saved_data['model_type'])
+
     model = model_class(saved_data['hyperparameters'], saved_data.get('run_name'))
     model.query_metadata.update(saved_data['query_metadata'])
     for (language, language_metadata) in saved_data['per_code_language_metadata'].items():
@@ -48,7 +51,7 @@ def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, 
             for variable in sorted(model.sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES), key=lambda v: v.name):
                 used_vars.add(variable.name)
                 if variable.name in saved_data['weights']:
-                    # print('Initializing %s from saved value.' % variable.name)
+                    print('Initializing %s from saved value.' % variable.name)
                     restore_ops.append(variable.assign(saved_data['weights'][variable.name]))
                 else:
                     print('Freshly initializing %s since no saved value was found.' % variable.name)

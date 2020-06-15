@@ -25,7 +25,7 @@ class NBoWEncoder(MaskedSeqEncoder):
     def make_model(self, is_train: bool=False) -> tf.Tensor:
         with tf.variable_scope("nbow_encoder"):
             self._make_placeholders()
-
+            
             seq_tokens_embeddings = self.embedding_layer(self.placeholders['tokens'])
             seq_token_mask = self.placeholders['tokens_mask']
             seq_token_lengths = tf.reduce_sum(seq_token_mask, axis=1)  # B

@@ -38,3 +38,4 @@ class MaskedSeqEncoder(SeqEncoder):
         super().minibatch_to_feed_dict(batch_data, feed_dict, is_train)
         write_to_feed_dict(feed_dict, self.placeholders['tokens'], batch_data['tokens'])
         write_to_feed_dict(feed_dict, self.placeholders['tokens_mask'], batch_data['tokens_mask'])
+        # print(feed_dict[self.placeholders['tokens']])

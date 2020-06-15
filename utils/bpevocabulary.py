@@ -151,7 +151,15 @@ class BpeVocabulary(typing.Sized):
             if word_token in self.word_vocab:
                 tokens.append(word_token)
             else:
-                tokens.extend(self.subword_tokenize(word_token))
+                """By Chen, 2020/06/15"""
+                from dpu_utils.codeutils import split_identifier_into_parts
+                split_word_tokens = split_identifier_into_parts(word_token)
+                for split_word_token in split_word_tokens:
+                    if split_word_token in self.word_vocab:
+                        tokens.append(split_word_token)
+                    else:
+                        tokens.extend(self.subword_tokenize(split_word_token))
+                # tokens.extend(self.subword_tokenize(word_token))
 
         return tokens
 

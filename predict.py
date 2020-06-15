@@ -118,13 +118,16 @@ if __name__ == '__main__':
         definitions = pickle.load(open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
         indexes = [{'code_tokens': d['function_tokens'], 'language': d['language']} for d in tqdm(definitions)]
         code_representations = model.get_code_representations(indexes)
-
+        #print(code_representations.shape)
         indices = AnnoyIndex(code_representations[0].shape[0], 'angular')
         for index, vector in tqdm(enumerate(code_representations)):
             if vector is not None:
                 indices.add_item(index, vector)
-        #indices.build(1000)
-        indices.build(10)
+            else:
+                print(index)
+        indices.build(1000)
+        #indices.build(10)
+        #indices.build(100)
 
         for query in tqdm(queries):
             for idx, _ in zip(*query_model(query, model, indices, language)):
@@ -132,7 +135,6 @@ if __name__ == '__main__':
 
     df = pd.DataFrame(predictions, columns=['query', 'language', 'identifier', 'url'])
     df.to_csv(predictions_csv, index=False)
-
 
     if run_id:
         print('Uploading predictions to W&B')

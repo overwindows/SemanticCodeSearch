@@ -29,6 +29,7 @@ def convert_and_pad_token_sequence(token_vocab: Union[Vocabulary, BpeVocabulary]
         Pair of numpy arrays. First is the actual tensorised token sequence, the second is a masking tensor
         that is 1.0 for those token indices that are actually used.
     """
+    assert isinstance(token_vocab, BpeVocabulary)
     if isinstance(token_vocab, BpeVocabulary):
         token_ids = np.array(list(token_vocab.transform([token_sequence], fixed_length=output_tensor_size))[0])
         token_mask = np.array([1 if token_ids[i] > 0 else 0 for i in range(len(token_ids))])

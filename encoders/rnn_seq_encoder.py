@@ -28,6 +28,8 @@ def __make_rnn_cell(cell_type: str,
         cell = tf.nn.rnn_cell.GRUCell(hidden_size)
     elif cell_type == 'rnn':
         cell = tf.nn.rnn_cell.BasicRNNCell(hidden_size)
+    elif cell_type == 'cudnn_lstm':
+        cell = tf.contrib.cudnn_rnn.CudnnLSTM(hidden_size)
     else:
         raise ValueError("Unknown RNN cell type '%s'!" % cell_type)
 

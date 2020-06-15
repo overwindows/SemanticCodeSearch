@@ -31,7 +31,14 @@ The model will be trained for each language. The evaluation metric is MRR for va
 
 ### Query the trained model
 
-# Online Semantic Code Search website
+## Online Semantic Code Search website
 - Requirements: Flask, ElasticSearch
 - Import source code file
 - Running the dev server
+
+### ElasticSearch
+ElasticSearch Index
+```
+curl -X GET 'http://localhost:9200/_cat/indices?v'
+```
+

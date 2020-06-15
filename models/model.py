@@ -64,7 +64,7 @@ def parse_data_file(hyperparameters: Dict[str, Any],
                                                                  function_name,
                                                                  sample,
                                                                  is_test)
-
+        assert len(raw_sample['docstring_tokens']) > 0
         use_query_flag = query_encoder_class.load_data_from_sample("query",
                                                                    hyperparameters,
                                                                    query_metadata,
@@ -316,26 +316,24 @@ class Model(ABC):
                                              - tf.diag_part(cosine_similarities)
                                              + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
                                                              axis=-1))
-        elif self.hyperparameters['loss'] == 'bilinear-cosine':
-            query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
+        # elif self.hyperparameters['loss'] == 'cosine':
+        #     query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
             
-            query_norms = tf.norm(query_representations_mapping, axis=-1, keep_dims=True) + 1e-10
-            code_norms = tf.norm(self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
-            cosine_similarities = tf.matmul(query_representations_mapping / query_norms,
-                                            self.ops['code_representations'] / code_norms,
-                                            transpose_a=False,
-                                            transpose_b=True,
-                                            name='code_query_cooccurrence_logits',
-                                            )
-            similarity_scores = cosine_similarities
+        #     query_norms = tf.norm(query_representations_mapping, axis=-1, keep_dims=True) + 1e-10
+        #     code_norms = tf.norm(self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
+        #     cosine_similarities = tf.matmul(query_representations_mapping / query_norms,
+        #                                     self.ops['code_representations'] / code_norms,
+        #                                     transpose_a=False,
+        #                                     transpose_b=True,
+        #                                     name='code_query_cooccurrence_logits',
+        #                                     )
+        #     similarity_scores = cosine_similarities
             
-            neg_matrix = tf.diag(tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
-            per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
-                                             - tf.diag_part(cosine_similarities)
-                                             + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
-                                                             axis=-1))
-
-
+        #     neg_matrix = tf.diag(tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
+        #     per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
+        #                                      - tf.diag_part(cosine_similarities)
+        #                                      + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
+        #                                                      axis=-1))
         elif self.hyperparameters['loss'] == 'max-margin':
             logits = tf.matmul(self.ops['query_representations'],
                                self.ops['code_representations'],
@@ -642,6 +640,9 @@ class Model(ABC):
                         raise ValueError()
                 else:
                     full_query_batch_data[key] = value
+            
+            #print(language, len(batch_data['per_language_code_data'][language]['tokens']), len(final_minibatch))
+            
             if language_to_reweighting_factor is not None:
                 language_weights.extend([language_to_reweighting_factor[language]] * len(batch_data['per_language_code_data'][language]['tokens']))
 
@@ -939,7 +940,10 @@ class Model(ABC):
         computed_representations = []
         original_tensorised_data_ids = []  # type: List[SampleId]
         for minibatch_counter, (batch_data_dict, samples_in_batch, samples_used_so_far, batch_original_tensorised_data_ids) in enumerate(data_generator):
+            #print(model_representation_op)
             op_results = self._sess.run(model_representation_op, feed_dict=batch_data_dict)
+            #print(op_results.shape)
+            #assert False
             computed_representations.append(op_results)
             original_tensorised_data_ids.extend(batch_original_tensorised_data_ids)
 
@@ -978,7 +982,6 @@ class Model(ABC):
             language = sample_to_parse['language']
             if language.startswith('python'):
                 language = 'python'
-
             if code_tokens is not None:
                 function_name = sample_to_parse.get('func_name')
                 return self._code_encoder_type.load_data_from_sample(
