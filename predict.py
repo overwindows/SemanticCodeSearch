@@ -67,7 +67,7 @@ import model_restore_helper
 def query_model(query, model, indices, language, topk=100):
     query_embedding = model.get_query_representations([{'docstring_tokens': tokenize_docstring_from_string(query),
                                                         'language': language}])[0]
-    idxs, distances = indices.get_nns_by_vector(query_embedding, topk, include_distances=True)
+    idxs, distances = indices.get_nns_by_vector(query_embedding, topk, search_k=1000000, include_distances=True)
     return idxs, distances
 
 
@@ -121,13 +121,11 @@ if __name__ == '__main__':
         #print(code_representations.shape)
         indices = AnnoyIndex(code_representations[0].shape[0], 'angular')
         for index, vector in tqdm(enumerate(code_representations)):
-            if vector is not None:
-                indices.add_item(index, vector)
-            else:
-                print(index)
+            assert vector is not None
+            indices.add_item(index, vector)
         indices.build(1000)
         #indices.build(10)
-        #indices.build(100)
+        #indices.build(200)
 
         for query in tqdm(queries):
             for idx, _ in zip(*query_model(query, model, indices, language)):
