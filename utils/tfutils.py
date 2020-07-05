@@ -170,6 +170,16 @@ def pool_sequence_embedding(pool_mode: str,
             sequence_token_embeddings * token_weights, axis=1)
         return seq_embedding_weighted_sum
     elif pool_mode == 'hybrid':
+        '''
+        attention_scores = tf.layers.dense(
+            sequence_token_embeddings, units=1, activation=tf.sigmoid, use_bias=False)  # B x T x 1
+        addr = (1.0 - tf.cast(sequence_token_masks, tf.float32)) * -10000.0
+        attention_scores += tf.expand_dims(addr, axis=-1)  # B x T x 1
+        token_weights = tf.nn.softmax(attention_scores, axis=1)
+        seq_embedding_weighted_sum = tf.reduce_sum(
+            sequence_token_embeddings * token_weights, axis=1)
+        self_aligned_pooled_rept = seq_embedding_weighted_sum
+        '''
         token_weights = tf.layers.dense(sequence_token_embeddings,
                                         units=1,
                                         activation=tf.sigmoid,
@@ -179,8 +189,9 @@ def pool_sequence_embedding(pool_mode: str,
         seq_embedding_weighted_sum = tf.reduce_sum(
             sequence_token_embeddings * token_weights, axis=1)  # B x D
         # B x D
-        weighted_pooled_rept = seq_embedding_weighted_sum / (tf.reduce_sum(token_weights, axis=1) + 1e-8)
-
+        weighted_pooled_rept = seq_embedding_weighted_sum / \
+            (tf.reduce_sum(token_weights, axis=1) + 1e-8)
+        
         seq_token_embeddings_masked = \
             sequence_token_embeddings * \
             tf.expand_dims(sequence_token_masks, axis=-1)  # B x T x D
@@ -197,7 +208,26 @@ def pool_sequence_embedding(pool_mode: str,
         max_pooled_rept = tf.reduce_max(
             sequence_token_embeddings + sequence_token_masks, axis=1)
 
-        return mean_pooled_rept+max_pooled_rept+weighted_pooled_rept
+        W = tf.get_variable('ELMo_W', shape=(
+            3,), initializer=tf.zeros_initializer, trainable=True,)
+        normed_weights = tf.split(tf.nn.softmax(W + 1.0 / 3), 3)
+        pieces = []
+        layers = [mean_pooled_rept, max_pooled_rept, weighted_pooled_rept]
+        for w, t in zip(normed_weights, layers):
+            # if do_layer_norm:
+            #    pieces.append(w * _do_ln(tf.squeeze(t, squeeze_dims=1)))
+            # else:
+            pieces.append(w * t)
+        sum_pieces = tf.add_n(pieces)
+        gamma = tf.get_variable(
+            'ELMo_gamma',
+            shape=(1, ),
+            initializer=tf.ones_initializer,
+            regularizer=None,
+            trainable=True,
+        )
+        return sum_pieces * gamma
+        # return mean_pooled_rept+max_pooled_rept+weighted_pooled_rept
         # pooled_rept = tf.concat([mean_pooled_rept, max_pooled_rept, weighted_pooled_rept], axis=-1)
         # return tf.layers.dense(pooled_rept, units=pooled_rept.shape[-1]//3)
     else:
