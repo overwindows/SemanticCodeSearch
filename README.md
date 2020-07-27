@@ -30,6 +30,10 @@ python3 -m train
 The model will be trained for each language. The evaluation metric is MRR for validation and test sets, however, the output of prediction will be evaluated by GitHub using nDCG.
 
 ### Query the trained model
+Predict
+```
+python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
+```
 
 ## Online Semantic Code Search website
 - Requirements: Flask, ElasticSearch
