@@ -3,7 +3,7 @@ from typing import Dict, Any, Optional, Type
 import tensorflow as tf
 from dpu_utils.utils import RichPath
 
-from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel, PolyAttentionModel
 from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1
 
 
@@ -25,11 +25,13 @@ def get_model_class_from_name(model_name: str) -> Type[Model]:
         return ConvSelfAttentionModel
     elif model_name in {'crossatt', 'crossattention', 'crossattentionmodel'}:
         return CrossAttentionModel
+    elif model_name in ['polyatt', 'polyattention', 'polyattentionmodel']:
+        retrun PolyAttentionModel
     else:
         raise Exception("Unknown model '%s'!" % model_name)
 
 
-def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, Any]]=None) -> Model:
+def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, Any]] = None) -> Model:
     saved_data = path.read_as_pickle()
 
     if hyper_overrides is not None:
@@ -37,7 +39,8 @@ def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, 
 
     model_class = get_model_class_from_name(saved_data['model_type'])
 
-    model = model_class(saved_data['hyperparameters'], saved_data.get('run_name'))
+    model = model_class(
+        saved_data['hyperparameters'], saved_data.get('run_name'))
     model.query_metadata.update(saved_data['query_metadata'])
     for (language, language_metadata) in saved_data['per_code_language_metadata'].items():
         model.per_code_language_metadata[language] = language_metadata
@@ -52,15 +55,18 @@ def restore(path: RichPath, is_train: bool, hyper_overrides: Optional[Dict[str, 
                 used_vars.add(variable.name)
                 if variable.name in saved_data['weights']:
                     print('Initializing %s from saved value.' % variable.name)
-                    restore_ops.append(variable.assign(saved_data['weights'][variable.name]))
+                    restore_ops.append(variable.assign(
+                        saved_data['weights'][variable.name]))
                 else:
-                    print('Freshly initializing %s since no saved value was found.' % variable.name)
+                    print(
+                        'Freshly initializing %s since no saved value was found.' % variable.name)
                     variables_to_initialize.append(variable)
             for var_name in sorted(saved_data['weights']):
                 if var_name not in used_vars:
                     if var_name.endswith('Adam:0') or var_name.endswith('Adam_1:0') or var_name in ['beta1_power:0', 'beta2_power:0']:
                         continue
                     print('Saved weights for %s not used by model.' % var_name)
-            restore_ops.append(tf.variables_initializer(variables_to_initialize))
+            restore_ops.append(
+                tf.variables_initializer(variables_to_initialize))
             model.sess.run(restore_ops)
     return model
