@@ -40,6 +40,12 @@ python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
 - Import source code file
 - Running the dev server
 
+### Web Front-End
+```
+cd frontend
+npm install
+npm start
+```
 ### ElasticSearch
 ElasticSearch Index
 ```
