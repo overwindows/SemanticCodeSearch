@@ -39,12 +39,13 @@ python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
 - Requirements: Flask, ElasticSearch
 - Import source code file
 - Running the dev server
-
+### Model Server
+```
+```
 ### Web Front-End
 ```
-cd frontend
+cd react-code-search
 npm install
-npm install @appbaseio/reactivesearch
 npm start
 ```
 ### ElasticSearch
