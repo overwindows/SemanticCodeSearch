@@ -44,6 +44,7 @@ python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
 ```
 cd frontend
 npm install
+npm install @appbaseio/reactivesearch
 npm start
 ```
 ### ElasticSearch

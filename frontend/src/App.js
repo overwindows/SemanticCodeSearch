@@ -18,7 +18,7 @@ function App() {
   return (
     <div className='app-container'>
       <form noValidate autoComplete='off'>
-        <h1>Patch Generation Demo</h1>
+        <h1>Code Search Demo</h1>
         <SelectBox model={model} setModel={setModel} />
         <TextBox text={text} setText={setText} />
         <Button onClick={generateText} />
