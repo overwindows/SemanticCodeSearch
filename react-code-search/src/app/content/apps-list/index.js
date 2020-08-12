@@ -6,6 +6,7 @@ import React, { useMemo, useState } from 'react'
 import config from 'config'
 import styled from 'styled-components'
 import { paginateRecords } from 'utils'
+import { apiGetApps, apiRequest } from 'utils/requests'
 
 const FlexContainer = styled.div`
   display: flex;
@@ -31,6 +32,7 @@ const AppsList = ({ apps }) => {
   const [activeCategory, setActiveCategory] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [page, setPage] = useState(0)
+  const [searchRes, setSearchRes] = useState([])
 
   const categories = useMemo(
     () => [
@@ -61,15 +63,22 @@ const AppsList = ({ apps }) => {
         setPage={setPage}
       />
       <MainSection>
-        <Header searchTerm={searchTerm} setPage={setPage} setSearchTerm={setSearchTerm} />
+        <Header searchTerm={searchTerm} setPage={setPage} setSearchTerm={setSearchTerm} setSearchRes={setSearchRes} />
+        {
+          searchRes.length > 0 ? (
+            <>
+              <Pagination count={searchRes.length} page={page} setPage={setPage} />
+              <List apps={paginateRecords(searchRes, page, config.paginationSize)} searchTerm={searchTerm} />
+            </>) : (<NoResultsMessage category={activeCategory} searchTerm={searchTerm} />)
+        }
         {filteredApps.length > 0 ? (
           <>
             <Pagination count={filteredApps.length} page={page} setPage={setPage} />
             <List apps={paginateRecords(filteredApps, page, config.paginationSize)} searchTerm={searchTerm} />
           </>
         ) : (
-          <NoResultsMessage category={activeCategory} searchTerm={searchTerm} />
-        )}
+            <NoResultsMessage category={activeCategory} searchTerm={searchTerm} />
+          )}
       </MainSection>
     </FlexContainer>
   )

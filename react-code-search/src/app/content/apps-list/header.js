@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import styled from 'styled-components'
 import { Cancel as CancelIcon } from 'assets/icons'
+import { Search as SearchIcon } from 'assets/icons'
+import { apiGetApps, apiRequest } from 'utils/requests'
 
 const StyledHeader = styled.header`
   display: flex;
@@ -29,6 +31,9 @@ const StyledInput = styled.input`
   }
 `
 
+const computeSubscriptionsPrice = subscriptions =>
+  subscriptions.reduce((total, subscription) => total + subscription.price, 0)
+
 const CancelButton = styled(props => (
   <button title="Clear search" type="button" {...props}>
     <CancelIcon />
@@ -45,7 +50,23 @@ const CancelButton = styled(props => (
   fill: ${({ theme }) => theme.primaryText}50;
 `
 
-const Header = ({ searchTerm, setPage, setSearchTerm }) => {
+const SearchButton = styled(props => (
+  <button title="Clear search" type="button" {...props}>
+    <SearchIcon />
+  </button>
+))`
+  width: 1.1rem;
+  height: 1.1rem;
+  padding: 0.1rem;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  fill: ${({ theme }) => theme.primaryText}50;
+`
+
+const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
   const inputRef = useRef(null)
 
   useEffect(() => inputRef.current.focus(), [])
@@ -63,6 +84,24 @@ const Header = ({ searchTerm, setPage, setSearchTerm }) => {
     inputRef.current.focus()
   }, [setSearchTerm])
 
+  const onSearchButtonClick = useCallback(() => {
+      (async () => {
+      const { json, requestError } = await apiRequest(apiGetApps, [])
+      if (requestError) {
+        // setError(requestError)
+      } else {
+        const appsWithSubscriptionsPrice = json.map(app => ({
+          subscriptionsPrice: computeSubscriptionsPrice(app.subscriptions),
+          ...app,
+        }))
+        setSearchRes(appsWithSubscriptionsPrice)
+        //alert(JSON.stringify(appsWithSubscriptionsPrice))
+      }
+      // setIsLoading(false)
+    })()   
+    inputRef.current.focus()
+  }, [setSearchTerm, setSearchRes])
+
   return (
     <StyledHeader>
       <StyledInput
@@ -72,7 +111,7 @@ const Header = ({ searchTerm, setPage, setSearchTerm }) => {
         title="Search for a specific code"
         value={searchTerm}
       />
-      {searchTerm && <CancelButton onClick={onCancelButtonClick} />}
+      {searchTerm && <CancelButton onClick={onCancelButtonClick}/> && <SearchButton onClick={onSearchButtonClick}/>}
     </StyledHeader>
   )
 }

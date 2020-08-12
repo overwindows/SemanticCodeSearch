@@ -1,6 +1,19 @@
 import Highlighter from 'react-highlight-words'
-import React from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
+import { Button as MaterialButton } from '@material-ui/core';
+import Popup from './popup';
+
+
+const Button = ({ onClick }) => (
+  <MaterialButton
+    style={{ marginTop: '1em', width: 'fit-content' }}
+    onClick={onClick}
+    variant="outlined"
+    color="primary">
+    Translate
+  </MaterialButton>
+)
 
 const AppContainer = styled.div`
   box-shadow: 0 2px 3px 0 ${({ theme }) => theme.colors.gray}, 0 0 3px 0 ${({ theme }) => theme.colors.gray};
@@ -55,45 +68,74 @@ const Tags = styled.div`
   text-align: right;
 `
 
-const App = ({ name, description, categories, subscriptions, searchTerm }) => (
-  <AppContainer>
-    <BoxInfo>
-      <BoxInfoContent>
-        <div>
-          <AppTitle>
-            <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
-          </AppTitle>
-          <p>
-            <Highlighter searchWords={[searchTerm]} textToHighlight={description} />
-          </p>
-        </div>
-        <Tags>{categories.sort().join(' / ')}</Tags>
-      </BoxInfoContent>
-      <BoxInfoFooter>
-        <ul>
-          {subscriptions.map(subscription => (
-            <li key={subscription.name}>
-              <span>{subscription.name}</span>{' '}
-              <h3>
-                {subscription.price > 0 ? (
-                  <>
-                    {(subscription.price / 100).toFixed(2)}
-                    <sup>{'€'}</sup>
-                  </>
-                ) : (
-                  <>
-                    {'Free'}
-                    <sup />
-                  </>
-                )}
-              </h3>
-            </li>
-          ))}
-        </ul>
-      </BoxInfoFooter>
-    </BoxInfo>
-  </AppContainer>
-)
+const App = ({ name, description, categories, subscriptions, searchTerm }) => {
+
+  const [isOpen, setIsOpen] = useState(false);
+
+  const togglePopup = () => {
+    setIsOpen(!isOpen);
+  }
+
+  const translate = useCallback(event => {
+    // setPage(0)
+    // setSearchTerm(event.target.value)
+    alert(description)
+    // description = 'Microsoft'
+  }, [description])
+
+  return (
+    <AppContainer>
+      <BoxInfo>
+        <BoxInfoContent>
+          <div>
+            <AppTitle>
+              <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
+            </AppTitle>
+            <p>
+              <Highlighter searchWords={[searchTerm]} textToHighlight={description} />
+            </p>
+          </div>
+          <Tags>{categories.sort().join(' / ')}</Tags>
+        </BoxInfoContent>
+        <BoxInfoFooter>
+          <ul>
+            {subscriptions.map(subscription => (
+              <li key={subscription.name}>
+                <span>{subscription.name}</span>{' '}
+                <h3>
+                  {subscription.price > 0 ? (
+                    <>
+                      {(subscription.price / 100).toFixed(2)}
+                      <sup>{'€'}</sup>
+                    </>
+                  ) : (
+                      <>
+                        {'Free'}
+                        <sup />
+                      </>
+                    )}
+                </h3>
+              </li>
+            ))}
+          </ul>
+        </BoxInfoFooter>
+        <Button onClick={togglePopup} />
+      </BoxInfo>
+      {isOpen && <Popup
+        content={<>
+          <b>Design your Popup</b>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+          <button>Test button</button>
+        </>}
+        handleClose={togglePopup}
+      />}
+    </AppContainer>
+
+  )
+}
+
+
+
 
 const AppsList = ({ apps, searchTerm }) => (
   <ul>

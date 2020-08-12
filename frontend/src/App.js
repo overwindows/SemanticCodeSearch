@@ -4,7 +4,7 @@ import SelectBox from './components/SelectBox';
 import TextBox from './components/TextBox';
 import './styles.scss';
 import { postGenerateTextEndpoint } from './utils';
-import {js_beautify} from './beautify';
+import { js_beautify } from './beautify';
 
 function App() {
   const [text, setText] = useState("");
@@ -32,13 +32,13 @@ function App() {
           <div className='result error'>Bad Request</div> :
           <div className='result valid'>
             {<div>
-            {
-              js_beautify(generatedText.data.result, {
-                indent_size: 1,
-                indent_char: " "
-              })
-            }
-          </div>}
+              {
+                js_beautify(generatedText.data.result, {
+                  indent_size: 1,
+                  indent_char: " "
+                })
+              }
+            </div>}
           </div>)}
     </div>
   );

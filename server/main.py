@@ -2,16 +2,13 @@
 
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS, cross_origin
-from fairseq import data, options, tasks, tokenizer, utils
-from server.patch_gen import PatchGen
-from util.helper import normalizeSnippet,decodeSnippet
-import sentencepiece as spm
+# from server.patch_gen import PatchGen
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-patchgen = PatchGen()
-sp = spm.SentencePieceProcessor()
+# patchgen = PatchGen()
+# sp = spm.SentencePieceProcessor()
 
 '''
 generator = None
@@ -20,9 +17,9 @@ max_positions = None
 align_dict = None
 '''
 
-@app.route("/reload", methods=['GET'])
+@app.route("/search", methods=['GET'])
 @cross_origin
-def reload_model():
+def search():
     pass
 
 @app.route("/generate", methods=['POST'])
@@ -61,10 +58,10 @@ def get_gen():
 
 
 if __name__ == "__main__":
-    parser = options.get_generation_parser(interactive=True)
-    args = options.parse_args_and_arch(parser)
-    patchgen.load_model(args)
-    if args.spm:
+    #parser = options.get_generation_parser(interactive=True)
+    #args = options.parse_args_and_arch(parser)
+    #patchgen.load_model(args)
+    #if args.spm:
         #sp.Load('sentencepiece.bpe.model')
-        sp.load(args.spm)
+    #    sp.load(args.spm)
     app.run(host='0.0.0.0', debug=True)
