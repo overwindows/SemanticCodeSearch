@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Button as MaterialButton } from '@material-ui/core';
 import Popup from './popup';
+import { apiPostApps, apiRequest } from 'utils/requests'
 
 
 const Button = ({ onClick }) => (
@@ -71,17 +72,37 @@ const Tags = styled.div`
 const App = ({ name, description, categories, subscriptions, searchTerm }) => {
 
   const [isOpen, setIsOpen] = useState(false);
+  const [content, setContent] =  useState('');
 
-  const togglePopup = () => {
-    setIsOpen(!isOpen);
-  }
+  const togglePopup = useCallback(event => {
+    (async () => {
+      const { json, requestError } = await apiRequest(apiPostApps, [description])
+      //alert(description)
+      if (requestError) {
+        // alert(requestError)
+        // setError(requestError)
+      } else {
+        // const appsWithSubscriptionsPrice = json.map(app => ({
+        //   subscriptionsPrice: computeSubscriptionsPrice(app.subscriptions),
+        //   ...app,
+        // }))
+        // setSearchRes(appsWithSubscriptionsPrice)
+        //alert(JSON.stringify(json))
+        setIsOpen(!isOpen);
+        setContent(JSON.stringify(json))
+        //alert(JSON.stringify(appsWithSubscriptionsPrice))
+      }
+      // setIsLoading(false)
+    })() 
+  }, [description, setIsOpen, setContent])
 
-  const translate = useCallback(event => {
+  const togglePopupClose = useCallback(event => {
     // setPage(0)
     // setSearchTerm(event.target.value)
-    alert(description)
+    alert('Microsoft')
+    setIsOpen(false);
     // description = 'Microsoft'
-  }, [description])
+  }, [setIsOpen])
 
   return (
     <AppContainer>
@@ -121,13 +142,9 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
         </BoxInfoFooter>
         <Button onClick={togglePopup} />
       </BoxInfo>
-      {isOpen && <Popup
-        content={<>
-          <b>Design your Popup</b>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
-          <button>Test button</button>
-        </>}
-        handleClose={togglePopup}
+      {isOpen && <Popup id='code'
+        content={content}
+        handleClose={togglePopupClose}
       />}
     </AppContainer>
 

@@ -30,21 +30,23 @@ const handleRequestError = async (response, json) => {
   }
 }
 
-const apiGetRequest = async url =>
-  await fetch(url, {
+const apiGetRequest = async (url, query) =>
+  await fetch(url + query, {
     headers: new Headers({
       'Content-Type': 'application/json',
     }),
     method: 'get',
   })
 
-// const apiPostRequest = async url =>
-// await fetch(url, {
-//   headers: new Headers({
-//     'Content-Type': 'application/json',
-//   }),
-//   method: 'post',
-// })
+const apiPostRequest = async (url, code) =>
+  alert(code)
+  await fetch(url, {
+    headers: new Headers({
+      'Content-Type': 'application/json',
+    }),
+    method: 'post',
+    body: JSON.stringify({ 'code': code })
+  })
 
-export const apiGetApps = () => apiGetRequest('http://13.66.133.203:5000/search')
-//export const apiPostApps = () => apiPostRequest('http://13.66.133.203:5000/translate')
+export const apiGetApps = (query) => apiGetRequest('http://13.66.133.203:5000/search?query=', query)
+export const apiPostApps = (code) => apiPostRequest('http://13.66.133.203:5000/translate', code)

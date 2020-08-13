@@ -86,8 +86,8 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
   }, [setSearchTerm])
 
   const onSearchButtonClick = useCallback(() => {
-      (async () => {
-      const { json, requestError } = await apiRequest(apiGetApps, [])
+    (async () => {
+      const { json, requestError } = await apiRequest(apiGetApps, [searchTerm])
       if (requestError) {
         // setError(requestError)
       } else {
@@ -99,9 +99,9 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
         //alert(JSON.stringify(appsWithSubscriptionsPrice))
       }
       // setIsLoading(false)
-    })()   
+    })()
     inputRef.current.focus()
-  }, [setSearchTerm, setSearchRes])
+  }, [searchTerm, setSearchRes])
 
   return (
     <StyledHeader>
@@ -112,7 +112,7 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
         title="Search for a specific code"
         value={searchTerm}
       />
-      {searchTerm && <CancelButton onClick={onCancelButtonClick}/> && <SearchButton onClick={onSearchButtonClick}/>}
+      {searchTerm && <CancelButton onClick={onCancelButtonClick} /> && <SearchButton onClick={onSearchButtonClick} />}
     </StyledHeader>
   )
 }
