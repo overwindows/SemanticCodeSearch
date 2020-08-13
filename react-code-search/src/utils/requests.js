@@ -38,4 +38,13 @@ const apiGetRequest = async url =>
     method: 'get',
   })
 
-export const apiGetApps = () => apiGetRequest(APPS_URL)
+// const apiPostRequest = async url =>
+// await fetch(url, {
+//   headers: new Headers({
+//     'Content-Type': 'application/json',
+//   }),
+//   method: 'post',
+// })
+
+export const apiGetApps = () => apiGetRequest('http://13.66.133.203:5000/search')
+//export const apiPostApps = () => apiPostRequest('http://13.66.133.203:5000/translate')

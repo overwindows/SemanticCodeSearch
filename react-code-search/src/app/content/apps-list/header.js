@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { Cancel as CancelIcon } from 'assets/icons'
 import { Search as SearchIcon } from 'assets/icons'
 import { apiGetApps, apiRequest } from 'utils/requests'
+import { postGenerateTextEndpoint } from 'app/utils'
 
 const StyledHeader = styled.header`
   display: flex;
