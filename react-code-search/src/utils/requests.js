@@ -1,5 +1,5 @@
-const BASE_API_URL = '.'
-const APPS_URL = `${BASE_API_URL}/apps.json`
+// const BASE_API_URL = '.'
+// const APPS_URL = `${BASE_API_URL}/apps.json`
 
 export const apiRequest = async (requestMethod, args) => {
   const promise = args.length === 0 ? requestMethod() : requestMethod(...args)
@@ -39,7 +39,6 @@ const apiGetRequest = async (url, query) =>
   })
 
 const apiPostRequest = async (url, code) =>
-  alert(code)
   await fetch(url, {
     headers: new Headers({
       'Content-Type': 'application/json',

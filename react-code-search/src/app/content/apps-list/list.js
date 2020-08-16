@@ -99,7 +99,7 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
   const togglePopupClose = useCallback(event => {
     // setPage(0)
     // setSearchTerm(event.target.value)
-    alert('Microsoft')
+    // alert('Microsoft')
     setIsOpen(false);
     // description = 'Microsoft'
   }, [setIsOpen])

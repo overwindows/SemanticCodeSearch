@@ -25,8 +25,8 @@ def get_model_class_from_name(model_name: str) -> Type[Model]:
         return ConvSelfAttentionModel
     elif model_name in {'crossatt', 'crossattention', 'crossattentionmodel'}:
         return CrossAttentionModel
-    elif model_name in ['polyatt', 'polyattention', 'polyattentionmodel']:
-        retrun PolyAttentionModel
+    elif model_name in {'polyatt', 'polyattention', 'polyattentionmodel'}:
+        return PolyAttentionModel
     else:
         raise Exception("Unknown model '%s'!" % model_name)
 

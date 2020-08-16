@@ -3,7 +3,6 @@ import styled from 'styled-components'
 import { Cancel as CancelIcon } from 'assets/icons'
 import { Search as SearchIcon } from 'assets/icons'
 import { apiGetApps, apiRequest } from 'utils/requests'
-import { postGenerateTextEndpoint } from 'app/utils'
 
 const StyledHeader = styled.header`
   display: flex;
@@ -67,7 +66,7 @@ const SearchButton = styled(props => (
   fill: ${({ theme }) => theme.primaryText}50;
 `
 
-const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
+const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes, setIsSearch}) => {
   const inputRef = useRef(null)
 
   useEffect(() => inputRef.current.focus(), [])
@@ -76,8 +75,9 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
     event => {
       setPage(0)
       setSearchTerm(event.target.value)
+      setIsSearch(false)
     },
-    [setPage, setSearchTerm]
+    [setPage, setSearchTerm, setIsSearch]
   )
 
   const onCancelButtonClick = useCallback(() => {
@@ -99,9 +99,11 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
         //alert(JSON.stringify(appsWithSubscriptionsPrice))
       }
       // setIsLoading(false)
+      setIsSearch(true)
     })()
     inputRef.current.focus()
-  }, [searchTerm, setSearchRes])
+    
+  }, [searchTerm, setSearchRes, setIsSearch])
 
   return (
     <StyledHeader>
@@ -109,7 +111,7 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes }) => {
         onChange={onSearchTermChange}
         placeholder="Search by Query"
         ref={inputRef}
-        title="Search for a specific code"
+        title="Search for code"
         value={searchTerm}
       />
       {searchTerm && <CancelButton onClick={onCancelButtonClick} /> && <SearchButton onClick={onSearchButtonClick} />}

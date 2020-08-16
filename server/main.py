@@ -3,12 +3,15 @@
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS, cross_origin
 import json
+from server.code_search import CodeSearch
+from server.code_trans import CodeTrans
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-# patchgen = PatchGen()
-# sp = spm.SentencePieceProcessor()
+codesearch = CodeSearch()
+codetrans = CodeTrans()
+
 '''
 generator = None
 models = None
@@ -18,10 +21,9 @@ align_dict = None
 @app.route("/search", methods=['GET'])
 @cross_origin()
 def search():
-    data = request.args.get("query")
-    print(data)
+    query = request.args.get("query")
     sample_json = json.load(open('react-code-search/public/apps.json', 'r'))
-    # print(sample_json)
+    print(sample_json)
     return jsonify(sample_json)
 
 
@@ -64,7 +66,8 @@ def translate():
 if __name__ == "__main__":
     #parser = options.get_generation_parser(interactive=True)
     #args = options.parse_args_and_arch(parser)
-    # patchgen.load_model(args)
+    codesearch.load_model()
+    codetrans.load_model()
     # if args.spm:
     # sp.Load('sentencepiece.bpe.model')
     #    sp.load(args.spm)

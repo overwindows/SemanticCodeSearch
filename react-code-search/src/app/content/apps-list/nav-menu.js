@@ -57,6 +57,7 @@ const Category = ({ active, category, children, onClick, ...props }) => {
 const NavMenu = ({ activeCategory, categories, setActiveCategory, setPage }) => {
   const onCategoryClick = useCallback(
     category => {
+      // alert(category)
       setActiveCategory(category)
       setPage(0)
       document.title = category ? `${category} - ${config.appName}` : config.appName
@@ -71,7 +72,7 @@ const NavMenu = ({ activeCategory, categories, setActiveCategory, setPage }) => 
         <Category
           active={!activeCategory}
           onClick={onCategoryClick}
-          title={activeCategory ? 'See all apps' : undefined}
+          title={activeCategory ? 'See all codes' : undefined}
         >
           {'All'}
         </Category>
