@@ -118,7 +118,7 @@ if __name__ == '__main__':
         definitions = pickle.load(open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
         indexes = [{'code_tokens': d['function_tokens'], 'language': d['language']} for d in tqdm(definitions)]
         code_representations = model.get_code_representations(indexes)
-        #print(code_representations.shape)
+        print(code_representations[0].shape)
         indices = AnnoyIndex(code_representations[0].shape[0], 'angular')
         for index, vector in tqdm(enumerate(code_representations)):
             assert vector is not None

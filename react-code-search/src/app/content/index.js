@@ -3,8 +3,8 @@ import Error from './error'
 import Loader from './loader'
 import React, { useEffect, useState } from 'react'
 
-const computeSubscriptionsPrice = subscriptions =>
-  subscriptions.reduce((total, subscription) => total + subscription.price, 0)
+// const computeSubscriptionsPrice = subscriptions =>
+//   subscriptions.reduce((total, subscription) => total + subscription.price, 0)
 
 const Content = () => {
   const [apps, setApps] = useState([])
