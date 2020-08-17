@@ -77,4 +77,7 @@ if __name__ == "__main__":
     # if args.spm:
     # sp.Load('sentencepiece.bpe.model')
     #    sp.load(args.spm)
-    app.run(host='0.0.0.0', debug=True, use_reloader=False)
+    try:
+        app.run(host='0.0.0.0', debug=True, use_reloader=False)
+    except KeyboardInterrupt as e:
+        print("[STOP]", e)
