@@ -41,16 +41,13 @@ python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
 - Running the dev server
 ### Model Server
 ```
+python3 -m server.main
 ```
 ### Web Front-End
 ```
 cd react-code-search
 npm install
 npm start
-```
-### Search Engine
-```
-python3 -m server.main
 ```
 ### ElasticSearch
 ElasticSearch Index
