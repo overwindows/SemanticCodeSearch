@@ -21,6 +21,9 @@ align_dict = None
 @app.route("/search", methods=['GET'])
 @cross_origin()
 def search():
+    # python_code = "def IntToIntStr26(self, int_value, int_str=''):\n    if int_value == 0:\n      return int_str\n    return self.IntToIntStr26(\n        int_value/26, string.lowercase[int_value%26] + int_str)"
+    # codetrans.translate(python_code)
+
     query = request.args.get("query")
     #sample_json = json.load(open('react-code-search/public/apps.json', 'r'))
     sample_json = codesearch.search(query)
@@ -70,7 +73,8 @@ if __name__ == "__main__":
     codesearch.load_model()
     codetrans.load_model()
     print('loading completed.')
+    #codetrans.translate(python_code)
     # if args.spm:
     # sp.Load('sentencepiece.bpe.model')
     #    sp.load(args.spm)
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, use_reloader=False)
