@@ -48,6 +48,10 @@ cd react-code-search
 npm install
 npm start
 ```
+### Search Engine
+```
+python3 -m server.main
+```
 ### ElasticSearch
 ElasticSearch Index
 ```

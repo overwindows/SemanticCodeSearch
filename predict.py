@@ -48,11 +48,13 @@ The schema of the output CSV file constitutes a valid submission to the CodeSear
 The row order corresponds to the result ranking in the search task. For example, if in row 5 there is an entry for the Python query "read properties file", and in row 60 another result for the Python query "read properties file", then the URL in row 5 is considered to be ranked higher than the URL in row 60 for that query and language.
 """
 
+
+
+
 import pickle
 import re
 import shutil
 import sys
-
 from annoy import AnnoyIndex
 from docopt import docopt
 from dpu_utils.utils import RichPath
@@ -60,20 +62,19 @@ import pandas as pd
 from tqdm import tqdm
 import wandb
 from wandb.apis import InternalApi
-
 from dataextraction.python.parse_python_data import tokenize_docstring_from_string
 import model_restore_helper
-
 def query_model(query, model, indices, language, topk=100):
     query_embedding = model.get_query_representations([{'docstring_tokens': tokenize_docstring_from_string(query),
                                                         'language': language}])[0]
-    idxs, distances = indices.get_nns_by_vector(query_embedding, topk, search_k=1000000, include_distances=True)
+    idxs, distances = indices.get_nns_by_vector(
+        query_embedding, topk, search_k=1000000, include_distances=True)
     return idxs, distances
 
 
 if __name__ == '__main__':
     args = docopt(__doc__)
-    
+
     queries = pd.read_csv('../resources/queries.csv')
     queries = list(queries['query'].values)
 
@@ -85,7 +86,8 @@ if __name__ == '__main__':
     if args_wandb_run_id:
         # validate format of runid:
         if len(args_wandb_run_id.split('/')) != 3:
-            print("ERROR: Invalid wandb_run_id format: %s (Expecting: user/project/hash)" % args_wandb_run_id, file=sys.stderr)
+            print("ERROR: Invalid wandb_run_id format: %s (Expecting: user/project/hash)" %
+                  args_wandb_run_id, file=sys.stderr)
             sys.exit(1)
         wandb_api = wandb.Api()
         # retrieve saved model from W&B for this run
@@ -93,7 +95,8 @@ if __name__ == '__main__':
         try:
             run = wandb_api.run(args_wandb_run_id)
         except wandb.CommError as e:
-            print("ERROR: Problem querying W&B for wandb_run_id: %s" % args_wandb_run_id, file=sys.stderr)
+            print("ERROR: Problem querying W&B for wandb_run_id: %s" %
+                  args_wandb_run_id, file=sys.stderr)
             sys.exit(1)
 
         print("Fetching run files from W&B...")
@@ -111,12 +114,14 @@ if __name__ == '__main__':
         path=model_path,
         is_train=False,
         hyper_overrides={})
-    
+
     predictions = []
     for language in ('python', 'go', 'javascript', 'java', 'php', 'ruby'):
         print("Evaluating language: %s" % language)
-        definitions = pickle.load(open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
-        indexes = [{'code_tokens': d['function_tokens'], 'language': d['language']} for d in tqdm(definitions)]
+        definitions = pickle.load(
+            open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
+        indexes = [{'code_tokens': d['function_tokens'],
+                    'language': d['language']} for d in tqdm(definitions)]
         code_representations = model.get_code_representations(indexes)
         print(code_representations[0].shape)
         indices = AnnoyIndex(code_representations[0].shape[0], 'angular')
@@ -124,14 +129,16 @@ if __name__ == '__main__':
             assert vector is not None
             indices.add_item(index, vector)
         indices.build(1000)
-        #indices.build(10)
-        #indices.build(200)
+        # indices.build(10)
+        # indices.build(200)
 
         for query in tqdm(queries):
             for idx, _ in zip(*query_model(query, model, indices, language)):
-                predictions.append((query, language, definitions[idx]['identifier'], definitions[idx]['url']))
+                predictions.append(
+                    (query, language, definitions[idx]['identifier'], definitions[idx]['url']))
 
-    df = pd.DataFrame(predictions, columns=['query', 'language', 'identifier', 'url'])
+    df = pd.DataFrame(predictions, columns=[
+                      'query', 'language', 'identifier', 'url'])
     df.to_csv(predictions_csv, index=False)
 
     if run_id:
@@ -147,4 +154,5 @@ if __name__ == '__main__':
 
         # Using internal wandb API. TODO: Update when available as a public API
         internal_api = InternalApi()
-        internal_api.push([predictions_base_csv], run=name, entity=entity, project=project)
+        internal_api.push([predictions_base_csv], run=name,
+                          entity=entity, project=project)
