@@ -33,22 +33,22 @@ class CodeSearch(object):
     def __init__(self):
         self.args = None
         self.local_model_path = 'neuralbow_hybrid-2020-07-05-13-43-57_model_best.pkl.gz'
-        self.indices = None
-        self.definitions = None
+        self.indices = {}
+        self.definitions = {}
         self.model = None
 
     def search(self, query, language='python', topk=100):
         predictions = []
         query_embedding = self.model.get_query_representations([{'docstring_tokens': tokenize_docstring_from_string(query),
-                                                            'language': language}])[0]
-        idxs, distances = self.indices.get_nns_by_vector(
-            query_embedding, topk, search_k=100, include_distances=True)
+                                                                 'language': language}])[0]
+        idxs, distances = self.indices[language].get_nns_by_vector(
+            query_embedding, topk, search_k=10000, include_distances=True)
         for i, idx in enumerate(idxs):
-            #print(self.definitions[idx].keys())
+            # print(self.definitions[idx].keys())
             predictions.append(
-                {"id": self.definitions[idx]['sha'],
-                 "name": self.definitions[idx]['identifier'],
-                 "description": self.definitions[idx]['function'],
+                {"id": self.definitions[language][idx]['sha'],
+                 "name": self.definitions[language][idx]['identifier'],
+                 "description": self.definitions[language][idx]['function'],
                  "categories": [language],
                  "subscriptions": [{"name": "Professional", "price": distances[i]}]
                  })
@@ -62,23 +62,27 @@ class CodeSearch(object):
             is_train=False,
             hyper_overrides={})
 
+        #for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
         for language in ['python']:
             print("Evaluating language: %s" % language)
-            self.definitions = pickle.load(
+            self.definitions[language] = pickle.load(
                 open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
 
-            if os.path.exists('{}.ann'.format(language)):
-                self.indices = AnnoyIndex(128, 'angular')
-                self.indices.load('{}.ann'.format(language))
+            if os.path.exists('/datadrive/{}.ann'.format(language)):
+                self.indices[language] = AnnoyIndex(128, 'angular')
+                self.indices[language].load(
+                    '/datadrive/{}.ann'.format(language))
             else:
                 indexes = [{'code_tokens': d['function_tokens'],
-                            'language': d['language']} for d in tqdm(self.definitions)]
+                            'language': d['language']} for d in tqdm(self.definitions[language])]
                 code_representations = self.model.get_code_representations(
                     indexes)
                 print(code_representations[0].shape)
-                indices = AnnoyIndex(code_representations[0].shape[0], 'angular')
+                self.indices[language] = AnnoyIndex(
+                    code_representations[0].shape[0], 'angular')
                 for index, vector in tqdm(enumerate(code_representations)):
                     assert vector is not None
-                    indices.add_item(index, vector)
-                indices.build(200)
-                indices.save('{}.ann'.format(language))
+                    self.indices[language].add_item(index, vector)
+                self.indices[language].build(1000)
+                self.indices[language].save(
+                    '/datadrive/{}.ann'.format(language))

@@ -9,8 +9,8 @@ from server.code_trans import CodeTrans
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
-codesearch = CodeSearch()
-codetrans = CodeTrans()
+CODESERACH = CodeSearch()
+CODETRANS = CodeTrans()
 
 '''
 generator = None
@@ -23,18 +23,17 @@ align_dict = None
 def search():
     query = request.args.get("query")
     #sample_json = json.load(open('react-code-search/public/apps.json', 'r'))
-    sample_json = codesearch.search(query)
+    sample_json = CODESERACH.search(query)
     # print(sample_json)
     return jsonify(sample_json)
-
 
 @app.route("/translate", methods=['POST'])
 @cross_origin()
 def translate():
     data = request.get_json()
-    print(data)
-    trans_code = codetrans.translate(data['code'])
-    return jsonify({'python': trans_code})
+    #print(data)
+    trans_code = CODETRANS.translate(data['code'])
+    return jsonify({'cpp': trans_code})
     # str_code = None
     # result = None
     # if 'text' not in data or len(data['text']) == 0 or 'model' not in data:
@@ -68,14 +67,14 @@ def translate():
 if __name__ == "__main__":
     #parser = options.get_generation_parser(interactive=True)
     #args = options.parse_args_and_arch(parser)
-    codesearch.load_model()
-    codetrans.load_model()
+    CODESERACH.load_model()
+    CODETRANS.load_model()
     print('loading completed.')
     # codetrans.translate(python_code)
     # if args.spm:
     # sp.Load('sentencepiece.bpe.model')
     #    sp.load(args.spm)
     try:
-        app.run(host='0.0.0.0', debug=True, use_reloader=False)
+        app.run(host='0.0.0.0', debug=False, use_reloader=False)
     except KeyboardInterrupt as e:
         print("[STOP]", e)

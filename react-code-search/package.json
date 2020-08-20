@@ -5,9 +5,11 @@
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "axios": "^0.19.2",
+    "prismjs": "^1.21.0",
     "react": "^16.11.0",
     "react-dom": "^16.11.0",
     "react-highlight-words": "^0.16.0",
+    "react-prism": "^4.3.2",
     "react-scripts": "3.2.0",
     "styled-components": "^4.4.1"
   },

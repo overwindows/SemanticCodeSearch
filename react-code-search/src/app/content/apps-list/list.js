@@ -5,6 +5,8 @@ import { Button as MaterialButton } from '@material-ui/core';
 import Popup from './popup';
 import { apiPostApps, apiRequest } from 'utils/requests'
 
+require('prismjs/themes/prism.css');
+require('prismjs');
 
 const Button = ({ onClick }) => (
   <MaterialButton
@@ -12,7 +14,7 @@ const Button = ({ onClick }) => (
     onClick={onClick}
     variant="outlined"
     color="primary">
-    Translate
+    Trans2Cpp
   </MaterialButton>
 )
 
@@ -72,12 +74,11 @@ const Tags = styled.div`
 const App = ({ name, description, categories, subscriptions, searchTerm }) => {
 
   const [isOpen, setIsOpen] = useState(false);
-  const [content, setContent] =  useState('');
+  const [content, setContent] = useState('');
 
   const togglePopup = useCallback(event => {
     (async () => {
       const { json, requestError } = await apiRequest(apiPostApps, [description])
-      //alert(description)
       if (requestError) {
         // alert(requestError)
         // setError(requestError)
@@ -87,13 +88,12 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
         //   ...app,
         // }))
         // setSearchRes(appsWithSubscriptionsPrice)
-        //alert(JSON.stringify(json))
         setIsOpen(!isOpen);
-        setContent(JSON.stringify(json))
+        setContent(json['cpp'][0])
         //alert(JSON.stringify(appsWithSubscriptionsPrice))
       }
       // setIsLoading(false)
-    })() 
+    })()
   }, [description, setIsOpen, setContent])
 
   const togglePopupClose = useCallback(event => {
@@ -113,7 +113,11 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
               <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
             </AppTitle>
             <p>
-              <Highlighter searchWords={[searchTerm]} textToHighlight={description} />
+              <pre>
+                <code className="language-python">
+                  <Highlighter searchWords={[searchTerm]} textToHighlight={description} />
+                </code>
+              </pre>
             </p>
           </div>
           <Tags>{categories.sort().join(' / ')}</Tags>
@@ -122,12 +126,12 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
           <ul>
             {subscriptions.map(subscription => (
               <li key={subscription.name}>
-                <span>{subscription.name}</span>{' '}
+                <span>{'Distance'}</span>{' '}
                 <h3>
-                  {subscription.price > 0 ? (
+                  {subscription.price > 0.0 ? (
                     <>
-                      {(subscription.price / 100).toFixed(2)}
-                      <sup>{'€'}</sup>
+                      {(subscription.price).toFixed(5)}
+                      <sup>{}</sup>
                     </>
                   ) : (
                       <>
