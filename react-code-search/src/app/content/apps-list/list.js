@@ -144,7 +144,7 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
             ))}
           </ul>
         </BoxInfoFooter>
-        <Button onClick={togglePopup} />
+        {categories=='python' && <Button onClick={togglePopup} /> }
       </BoxInfo>
       {isOpen && <Popup id='code'
         content={content}

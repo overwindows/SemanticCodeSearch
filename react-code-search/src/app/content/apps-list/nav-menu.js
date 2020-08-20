@@ -82,7 +82,7 @@ const NavMenu = ({ activeCategory, categories, setActiveCategory, setPage }) => 
             category={category}
             key={category}
             onClick={onCategoryClick}
-            title={category !== activeCategory ? `See ${category} apps` : undefined}
+            title={category !== activeCategory ? `See ${category} codes` : undefined}
           >
             {category}
           </Category>

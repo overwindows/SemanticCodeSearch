@@ -1,29 +1,22 @@
-""" 
-Conditional patch generation with the auto-regressive model.Batches data on-the-fly.
-"""
-from collections import namedtuple
 import fileinput
 import sys
-
 import torch
-
-from fairseq import data, options, tasks, tokenizer, utils
-from fairseq.sequence_generator import SequenceGenerator
-from fairseq.utils import import_user_module
-
 import pickle
 import re
 import shutil
 import os
+import model_restore_helper
+import pandas as pd
 
+from dataextraction.python.parse_python_data import tokenize_docstring_from_string
+from collections import namedtuple
+from fairseq import data, options, tasks, tokenizer, utils
+from fairseq.sequence_generator import SequenceGenerator
+from fairseq.utils import import_user_module
 from annoy import AnnoyIndex
 from docopt import docopt
 from dpu_utils.utils import RichPath
-import pandas as pd
 from tqdm import tqdm
-
-from dataextraction.python.parse_python_data import tokenize_docstring_from_string
-import model_restore_helper
 
 Batch = namedtuple('Batch', 'ids src_tokens src_lengths, src_strs')
 Translation = namedtuple('Translation', 'src_str hypos pos_scores alignments')
@@ -37,7 +30,7 @@ class CodeSearch(object):
         self.definitions = {}
         self.model = None
 
-    def search(self, query, language='python', topk=100):
+    def search(self, query, language='python', topk=20):
         predictions = []
         query_embedding = self.model.get_query_representations([{'docstring_tokens': tokenize_docstring_from_string(query),
                                                                  'language': language}])[0]
@@ -62,9 +55,9 @@ class CodeSearch(object):
             is_train=False,
             hyper_overrides={})
 
-        #for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
-        for language in ['python']:
-            print("Evaluating language: %s" % language)
+        for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
+            # for language in ['python']:
+            print("Loading language: %s" % language)
             self.definitions[language] = pickle.load(
                 open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
 

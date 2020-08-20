@@ -22,16 +22,18 @@ align_dict = None
 @cross_origin()
 def search():
     query = request.args.get("query")
-    #sample_json = json.load(open('react-code-search/public/apps.json', 'r'))
-    sample_json = CODESERACH.search(query)
-    # print(sample_json)
-    return jsonify(sample_json)
+    json_res = []
+    for lang in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
+        sample_json = CODESERACH.search(query, language=lang)
+        json_res.extend(sample_json)
+    return jsonify(json_res)
+
 
 @app.route("/translate", methods=['POST'])
 @cross_origin()
 def translate():
     data = request.get_json()
-    #print(data)
+    # print(data)
     trans_code = CODETRANS.translate(data['code'])
     return jsonify({'cpp': trans_code})
     # str_code = None
