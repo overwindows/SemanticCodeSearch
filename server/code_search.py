@@ -30,7 +30,7 @@ class CodeSearch(object):
         self.definitions = {}
         self.model = None
 
-    def search(self, query, language='python', topk=20):
+    def search(self, query, language='python', topk=5):
         predictions = []
         query_embedding = self.model.get_query_representations([{'docstring_tokens': tokenize_docstring_from_string(query),
                                                                  'language': language}])[0]
@@ -56,7 +56,7 @@ class CodeSearch(object):
             hyper_overrides={})
 
         for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
-            # for language in ['python']:
+        #for language in ['python']:
             print("Loading language: %s" % language)
             self.definitions[language] = pickle.load(
                 open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))

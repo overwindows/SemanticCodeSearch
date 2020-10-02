@@ -67,7 +67,7 @@ const NavMenu = ({ activeCategory, categories, setActiveCategory, setPage }) => 
 
   return (
     <Nav>
-      <h2>{''}</h2>
+      <h2>{'CTRL+F'}</h2>
       <ul>
         <Category
           active={!activeCategory}

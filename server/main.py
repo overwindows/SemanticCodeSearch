@@ -18,14 +18,22 @@ models = None
 max_positions = None
 align_dict = None
 '''
+
 @app.route("/search", methods=['GET'])
 @cross_origin()
 def search():
     query = request.args.get("query")
+    print(query)
     json_res = []
     for lang in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
         sample_json = CODESERACH.search(query, language=lang)
         json_res.extend(sample_json)
+        # if lang == 'python':
+        #     cpp_sample_json = sample_json[:]
+        #     for ix in range(len(cpp_sample_json)):
+        #         cpp_sample_json[ix]['categories'] = ['cpp*']
+        #         cpp_sample_json[ix]['description'] = CODETRANS.translate(cpp_sample_json[ix]['description'])
+        #     json_res.extend(cpp_sample_json)
     return jsonify(json_res)
 
 
