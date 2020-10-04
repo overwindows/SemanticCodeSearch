@@ -1,4 +1,4 @@
 export default {
-  appName: 'Semantic Code Search',
+  appName: 'Code Search & Trans',
   paginationSize: 5,
 }

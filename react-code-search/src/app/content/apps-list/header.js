@@ -31,8 +31,8 @@ const StyledInput = styled.input`
   }
 `
 
-const computeSubscriptionsPrice = subscriptions =>
-  subscriptions.reduce((total, subscription) => total + subscription.price, 0)
+const computeSubscriptionsPrice = scores =>
+  scores.reduce((total, score) => total + score.score, 0)
 
 const CancelButton = styled(props => (
   <button title="Clear search" type="button" {...props}>
@@ -91,11 +91,11 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes, setIsSearch}
       if (requestError) {
         // setError(requestError)
       } else {
-        const appsWithSubscriptionsPrice = json.map(app => ({
-          subscriptionsPrice: computeSubscriptionsPrice(app.subscriptions),
+        const snippetsWithRankingScore = json.map(app => ({
+          subscriptionsPrice: computeSubscriptionsPrice(app.scores),
           ...app,
         }))
-        setSearchRes(appsWithSubscriptionsPrice)
+        setSearchRes(snippetsWithRankingScore)
         //alert(JSON.stringify(appsWithSubscriptionsPrice))
       }
       // setIsLoading(false)
@@ -109,7 +109,7 @@ const Header = ({ searchTerm, setPage, setSearchTerm, setSearchRes, setIsSearch}
     <StyledHeader>
       <StyledInput
         onChange={onSearchTermChange}
-        placeholder="Search by Query"
+        placeholder="Input your query text or code snippet"
         ref={inputRef}
         title="Search for code"
         value={searchTerm}

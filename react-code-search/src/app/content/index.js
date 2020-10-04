@@ -2,9 +2,8 @@ import AppsList from './apps-list'
 import Error from './error'
 import Loader from './loader'
 import React, { useEffect, useState } from 'react'
+import Prism from 'prismjs/prism';
 
-// const computeSubscriptionsPrice = subscriptions =>
-//   subscriptions.reduce((total, subscription) => total + subscription.price, 0)
 
 const Content = () => {
   const [apps, setApps] = useState([])
@@ -12,19 +11,20 @@ const Content = () => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-  //   ;(async () => {
-  //     const { json, requestError } = await apiRequest(apiGetApps, [])
-  //     if (requestError) {
-  //       setError(requestError)
-  //     } else {
-  //       const appsWithSubscriptionsPrice = json.map(app => ({
-  //         subscriptionsPrice: computeSubscriptionsPrice(app.subscriptions),
-  //         ...app,
-  //       }))
-  //       setApps(appsWithSubscriptionsPrice)
-  //     }
-  //     setIsLoading(false)
-  //   })()
+    //   ;(async () => {
+    //     const { json, requestError } = await apiRequest(apiGetApps, [])
+    //     if (requestError) {
+    //       setError(requestError)
+    //     } else {
+    //       const appsWithSubscriptionsPrice = json.map(app => ({
+    //         subscriptionsPrice: computeSubscriptionsPrice(app.subscriptions),
+    //         ...app,
+    //       }))
+    //       setApps(appsWithSubscriptionsPrice)
+    //     }
+    //     setIsLoading(false)
+    //   })()
+    setTimeout(() => Prism.highlightAll(), 0)
   }, [])
 
   if (isLoading) return <Loader />

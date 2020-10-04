@@ -1,12 +1,27 @@
+
 import Highlighter from 'react-highlight-words'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Button as MaterialButton } from '@material-ui/core';
 import Popup from './popup';
+import {js_beautify} from './beautify'
 import { apiPostApps, apiRequest } from 'utils/requests'
+import 'prismjs/themes/prism.css';
 
-require('prismjs/themes/prism.css');
-require('prismjs');
+// DO NOT change the following lines to imports. auto organize imports will place them on top of Prism import, which is required by those
+require('prismjs/components/prism-java');
+require('prismjs/components/prism-python');
+require('prismjs/components/prism-go');
+require('prismjs/components/prism-ruby');
+require('prismjs/components/prism-markup-templating.js');
+require('prismjs/components/prism-clike.js');
+require('prismjs/components/prism-c.js');
+require('prismjs/components/prism-cpp.js');
+require('prismjs/components/prism-php.js');
+require('prismjs/plugins/line-highlight/prism-line-highlight');
+require('prismjs/plugins/line-highlight/prism-line-highlight.css');
+require('prismjs/plugins/line-numbers/prism-line-numbers');
+require('prismjs/plugins/line-numbers/prism-line-numbers.css');
 
 const Button = ({ onClick }) => (
   <MaterialButton
@@ -71,14 +86,14 @@ const Tags = styled.div`
   text-align: right;
 `
 
-const App = ({ name, description, categories, subscriptions, searchTerm }) => {
+const App = ({ name, func, languages, scores, searchTerm }) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState('');
 
   const togglePopup = useCallback(event => {
     (async () => {
-      const { json, requestError } = await apiRequest(apiPostApps, [description])
+      const { json, requestError } = await apiRequest(apiPostApps, [func])
       if (requestError) {
         // alert(requestError)
         // setError(requestError)
@@ -94,7 +109,7 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
       }
       // setIsLoading(false)
     })()
-  }, [description, setIsOpen, setContent])
+  }, [func, setIsOpen, setContent])
 
   const togglePopupClose = useCallback(event => {
     // setPage(0)
@@ -104,33 +119,38 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
     // description = 'Microsoft'
   }, [setIsOpen])
 
+  var func_code = func
+  if (languages == 'javascript'){
+    func_code = js_beautify(func, {indent_size: 1,indent_char: " "})
+  }
+  
   return (
     <AppContainer>
       <BoxInfo>
         <BoxInfoContent>
           <div>
-            <AppTitle>
+            {/* <AppTitle>
               <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
-            </AppTitle>
+            </AppTitle> */}
             <p>
-              <pre>
-                <code className="language-python">
-                  <Highlighter searchWords={[searchTerm]} textToHighlight={description} />
+              <pre class={`language-${languages} line-numbers`}>
+                <code class={`language-${languages}`} >
+                  <Highlighter searchWords={[searchTerm]} textToHighlight={func_code} />
                 </code>
               </pre>
             </p>
           </div>
-          <Tags>{categories.sort().join(' / ')}</Tags>
+          <Tags>{languages.sort().join(' / ')}</Tags>
         </BoxInfoContent>
         <BoxInfoFooter>
           <ul>
-            {subscriptions.map(subscription => (
-              <li key={subscription.name}>
-                <span>{'Distance'}</span>{' '}
+            {/* {scores.map(score => (
+              <li key={score.name}>
+                <span>{'Ranking Score'}</span>{' '}
                 <h3>
-                  {subscription.price > 0.0 ? (
+                  {score.score > 0.0 ? (
                     <>
-                      {(subscription.price).toFixed(5)}
+                      {(score.score).toFixed(5)}
                       <sup>{}</sup>
                     </>
                   ) : (
@@ -141,10 +161,10 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
                     )}
                 </h3>
               </li>
-            ))}
+            ))} */}
           </ul>
         </BoxInfoFooter>
-        {categories=='python' && <Button onClick={togglePopup} /> }
+        {languages == 'python' && <Button onClick={togglePopup} />}
       </BoxInfo>
       {isOpen && <Popup id='code'
         content={content}
@@ -154,9 +174,6 @@ const App = ({ name, description, categories, subscriptions, searchTerm }) => {
 
   )
 }
-
-
-
 
 const AppsList = ({ apps, searchTerm }) => (
   <ul>

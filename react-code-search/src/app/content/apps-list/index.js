@@ -6,7 +6,7 @@ import React, { useMemo, useState } from 'react'
 import config from 'config'
 import styled from 'styled-components'
 import { paginateRecords } from 'utils'
-// import { apiGetApps, apiRequest } from 'utils/requests'
+import Prism from 'prismjs/prism';
 
 const FlexContainer = styled.div`
   display: flex;
@@ -24,8 +24,8 @@ const MainSection = styled.section`
   width: 100%;
 `
 
-const NoResultsMessage = ({ category, searchTerm }) => (
-  <p>{`Can't find any ${category ? `${category.toLowerCase()} ` : ''}code matching "${searchTerm}"`}</p>
+const NoResultsMessage = ({ language, searchTerm }) => (
+  <p>{`Can't find any ${language ? `${language.toLowerCase()} ` : ''}code matching "${searchTerm}"`}</p>
 )
 
 const AppsList = ({ apps }) => {
@@ -50,7 +50,8 @@ const AppsList = ({ apps }) => {
     // const filteredCode = (activeCategory ? searchRes.filter(app => app.categories.includes(activeCategory)) : searchRes)
     //       .filter(app => `${app.name} ${app.description}`.toLowerCase().includes(searchTerm.toLowerCase()))
     //       .sort((a, b) => a.subscriptionsPrice - b.subscriptionsPrice)
-    setfilteredApps((activeCategory ? searchRes.filter(app => app.categories.includes(activeCategory)) : searchRes).sort((a, b) => a.subscriptionsPrice - b.subscriptionsPrice))
+    setTimeout(() => Prism.highlightAll(), 0)
+    setfilteredApps((activeCategory ? searchRes.filter(app => app.languages.includes(activeCategory)) : searchRes).sort((a, b) => a.subscriptionsPrice - b.subscriptionsPrice))
   }, [setfilteredApps, searchRes, activeCategory]);
 
   return (
@@ -61,7 +62,7 @@ const AppsList = ({ apps }) => {
         categories={[
           ...new Set(
             searchRes
-              .map(searchRes => searchRes.categories)
+              .map(searchRes => searchRes.languages)
               .flat()
               .sort()
           ),

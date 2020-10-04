@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import config from 'config'
 import styled from 'styled-components'
+import logoIcon from 'assets/logo.png';
 
 const Nav = styled.nav`
   flex: 1 100%;
@@ -67,7 +68,7 @@ const NavMenu = ({ activeCategory, categories, setActiveCategory, setPage }) => 
 
   return (
     <Nav>
-      <h2>{'CTRL+F'}</h2>
+      <img src={logoIcon} alt= "data+ai" height="52.5"/>
       <ul>
         <Category
           active={!activeCategory}
