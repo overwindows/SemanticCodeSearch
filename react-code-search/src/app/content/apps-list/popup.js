@@ -36,7 +36,8 @@ const Popup = props => {
         <BoxInfoContent>
         <div>
         <p>
-          <pre className="line-numbers">
+          {/* <pre className="line-numbers"> */}
+          <pre>
             <code className="language-cpp">
               {/* <ReactPrismjs language="cpp" source={formatted_code} /> */}
               {formatted_code}

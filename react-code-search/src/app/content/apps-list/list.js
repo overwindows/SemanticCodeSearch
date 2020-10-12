@@ -133,7 +133,7 @@ const App = ({ name, func, languages, scores, searchTerm }) => {
               <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
             </AppTitle> */}
             <p>
-              <pre class={`language-${languages} line-numbers`}>
+              <pre>
                 <code class={`language-${languages}`} >
                   <Highlighter searchWords={[searchTerm]} textToHighlight={func_code} />
                 </code>
