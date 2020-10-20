@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import styled from 'styled-components'
 import { Button as MaterialButton } from '@material-ui/core';
 import Popup from './popup';
-import {js_beautify} from './beautify'
+import { js_beautify } from './beautify'
 import { apiPostApps, apiRequest } from 'utils/requests'
 import 'prismjs/themes/prism.css';
 
@@ -62,6 +62,7 @@ const BoxInfoContent = styled.div`
   display: flex;
   justify-content: space-between;
   margin-bottom: 1.5rem;
+  // overflow-x:auto;
 `
 
 const BoxInfoFooter = styled.div`
@@ -120,15 +121,15 @@ const App = ({ name, func, languages, scores, searchTerm }) => {
   }, [setIsOpen])
 
   var func_code = func
-  if (languages == 'javascript'){
-    func_code = js_beautify(func, {indent_size: 1,indent_char: " "})
+  if (languages == 'javascript') {
+    func_code = js_beautify(func, { indent_size: 1, indent_char: " " })
   }
-  
+
   return (
     <AppContainer>
       <BoxInfo>
         <BoxInfoContent>
-          <div>
+          <div style={{ width: '1024px' }}>
             {/* <AppTitle>
               <Highlighter searchWords={[searchTerm]} textToHighlight={name} />
             </AppTitle> */}

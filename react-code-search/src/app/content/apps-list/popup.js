@@ -34,7 +34,7 @@ const Popup = props => {
       <div className="box">
         <span className="close-icon" onClick={props.handleClose}>x</span><br></br>
         <BoxInfoContent>
-        <div>
+        <div style={{ width: '1024px' }}>
         <p>
           {/* <pre className="line-numbers"> */}
           <pre>
