@@ -41,9 +41,9 @@ class CodeSearch(object):
             predictions.append(
                 {"id": self.definitions[language][idx]['sha'],
                  "name": self.definitions[language][idx]['identifier'],
-                 "description": self.definitions[language][idx]['function'],
-                 "categories": [language],
-                 "subscriptions": [{"name": "Professional", "price": distances[i]}]
+                 "func": self.definitions[language][idx]['function'],
+                 "languages": [language],
+                 "scores": [{"name": "similarity", "score": distances[i]}]
                  })
         return predictions
 
@@ -56,7 +56,7 @@ class CodeSearch(object):
             hyper_overrides={})
 
         for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
-        #for language in ['python']:
+            # for language in ['python']:
             print("Loading language: %s" % language)
             self.definitions[language] = pickle.load(
                 open('../resources/data/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
