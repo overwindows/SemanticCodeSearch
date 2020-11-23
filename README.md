@@ -36,7 +36,7 @@ python3 predict.py -r wuchen/SemanticCodeSearch/1fpfl6dq
 ```
 
 ## Online Semantic Code Search website
-- Requirements: Flask, ElasticSearch
+- Requirements: Flask <!--, ElasticSearch -->
 - Import source code file
 - Running the dev server
 ### Model Server
@@ -49,9 +49,10 @@ cd react-code-search
 npm install
 npm start
 ```
+<!--
 ### ElasticSearch
 Check index
 ```
 curl -X GET 'http://localhost:9200/_cat/indices?v'
 ```
-
+-->
