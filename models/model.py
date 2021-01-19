@@ -36,7 +36,8 @@ def get_data_files_from_directory(data_dirs: List[RichPath],
             dir_files = sorted(dir_files)[:int(max_files_per_dir)]
         files += dir_files
 
-    np.random.shuffle(files)  # This avoids having large_file_0, large_file_1, ... subsequences
+    # This avoids having large_file_0, large_file_1, ... subsequences
+    np.random.shuffle(files)
     return files
 
 
@@ -51,7 +52,8 @@ def parse_data_file(hyperparameters: Dict[str, Any],
     for raw_sample in data_file.read_by_file_suffix():
         sample: Dict = {}
         language = raw_sample['language']
-        if language.startswith('python'):  # In some datasets, we use 'python-2.7' and 'python-3'
+        # In some datasets, we use 'python-2.7' and 'python-3'
+        if language.startswith('python'):
             language = 'python'
 
         # the load_data_from_sample method call places processed data into sample, and
@@ -68,7 +70,8 @@ def parse_data_file(hyperparameters: Dict[str, Any],
         use_query_flag = query_encoder_class.load_data_from_sample("query",
                                                                    hyperparameters,
                                                                    query_metadata,
-                                                                   [d.lower() for d in raw_sample['docstring_tokens']],
+                                                                   [d.lower(
+                                                                   ) for d in raw_sample['docstring_tokens']],
                                                                    function_name,
                                                                    sample,
                                                                    is_test)
@@ -82,33 +85,33 @@ class Model(ABC):
     @abstractmethod
     def get_default_hyperparameters(cls) -> Dict[str, Any]:
         return {
-                'batch_size': 200,
-                'optimizer': 'Adam',
-                'seed': 0,
-                'dropout_keep_rate': 0.9,
-                'learning_rate': 0.01,
-                'learning_rate_code_scale_factor': 1.,
-                'learning_rate_query_scale_factor': 1.,
-                'learning_rate_decay': 0.98,
-                'momentum': 0.85,
-                'gradient_clip': 1,
-                'loss': 'softmax',  # One of softmax, cosine, max-margin
-                'margin': 1,
-                'max_epochs': 500,
-                'patience': 5,
+            'batch_size': 200,
+            'optimizer': 'Adam',
+            'seed': 0,
+            'dropout_keep_rate': 0.9,
+            'learning_rate': 0.01,
+            'learning_rate_code_scale_factor': 1.,
+            'learning_rate_query_scale_factor': 1.,
+            'learning_rate_decay': 0.98,
+            'momentum': 0.85,
+            'gradient_clip': 1,
+            'loss': 'softmax',  # One of softmax, cosine, max-margin
+            'margin': 1,
+            'max_epochs': 500,
+            'patience': 5,
 
-                # Fraction of samples for which the query should be the function name instead of the docstring:
-                'fraction_using_func_name': 0.1,
-                # Only functions with a name at least this long will be candidates for training with the function name
-                # as the query instead of the docstring:
-                'min_len_func_name_for_query': 12,
-                # Frequency at which random, common tokens are added into the query:
-                'query_random_token_frequency': 0.,
+            # Fraction of samples for which the query should be the function name instead of the docstring:
+            'fraction_using_func_name': 0.1,
+            # Only functions with a name at least this long will be candidates for training with the function name
+            # as the query instead of the docstring:
+            'min_len_func_name_for_query': 12,
+            # Frequency at which random, common tokens are added into the query:
+            'query_random_token_frequency': 0.,
 
-                # Maximal number of tokens considered to compute a representation for code/query:
-                'code_max_num_tokens': 200,
-                'query_max_num_tokens': 30,
-               }
+            # Maximal number of tokens considered to compute a representation for code/query:
+            'code_max_num_tokens': 200,
+            'query_max_num_tokens': 30,
+        }
 
     def __init__(self,
                  hyperparameters: Dict[str, Any],
@@ -118,7 +121,8 @@ class Model(ABC):
                  model_save_dir: Optional[str] = None,
                  log_save_dir: Optional[str] = None) -> None:
         self._code_encoder_type = code_encoder_type
-        self._code_encoders: OrderedDict[str, Any] = OrderedDict()  # OrderedDict as we are using the order of languages a few times...
+        # OrderedDict as we are using the order of languages a few times...
+        self._code_encoders: OrderedDict[str, Any] = OrderedDict()
 
         self._query_encoder_type = query_encoder_type
         self._query_encoder: Any = None
@@ -129,26 +133,30 @@ class Model(ABC):
 
         self._query_metadata: Dict[str, Any] = {}
         self._per_code_language_metadata: Dict[str, Any] = {}
-        self._placeholders: Dict[str, Union[tf.placeholder, tf.placeholder_with_default]] = {}
+        self._placeholders: Dict[str, Union[tf.placeholder,
+                                            tf.placeholder_with_default]] = {}
         self._ops: Dict[str, Any] = {}
         if run_name is None:
             run_name = type(self)._name_
         self._run_name = run_name
 
         if model_save_dir is None:
-            self._model_save_dir = os.environ.get('PHILLY_MODEL_DIRECTORY', default='.')  # type: str
+            self._model_save_dir = os.environ.get(
+                'PHILLY_MODEL_DIRECTORY', default='.')  # type: str
         else:
             self._model_save_dir = model_save_dir  # type: str
 
         if log_save_dir is None:
-            self._log_save_dir = os.environ.get('PHILLY_LOG_DIRECTORY', default='.')  # type: str
+            self._log_save_dir = os.environ.get(
+                'PHILLY_LOG_DIRECTORY', default='.')  # type: str
         else:
             self._log_save_dir = log_save_dir  # type: str
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         if "gpu_device_id" in self.hyperparameters:
-            config.gpu_options.visible_device_list = str(self.hyperparameters["gpu_device_id"])
+            config.gpu_options.visible_device_list = str(
+                self.hyperparameters["gpu_device_id"])
 
         graph = tf.Graph()
         self._sess = tf.Session(graph=graph, config=config)
@@ -184,7 +192,7 @@ class Model(ABC):
     def representation_size(self) -> int:
         return self._query_encoder.output_representation_size
 
-    def _log_tensorboard_scalar(self, tag:str, value:float, step:int) -> None:
+    def _log_tensorboard_scalar(self, tag: str, value: float, step: int) -> None:
         """Log scalar values that are not ops to tensorboard."""
         summary = tf.Summary(value=[tf.Summary.Value(tag=tag,
                                                      simple_value=value)])
@@ -192,19 +200,20 @@ class Model(ABC):
         self._summary_writer.flush()
 
     def save(self, path: RichPath) -> None:
-        variables_to_save = list(set(self._sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)))
+        variables_to_save = list(
+            set(self._sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)))
         weights_to_save = self._sess.run(variables_to_save)
         weights_to_save = {var.name: value
                            for (var, value) in zip(variables_to_save, weights_to_save)}
 
         data_to_save = {
-                         "model_type": type(self).__name__,
-                         "hyperparameters": self.hyperparameters,
-                         "query_metadata": self._query_metadata,
-                         "per_code_language_metadata": self._per_code_language_metadata,
-                         "weights": weights_to_save,
-                         "run_name": self._run_name,
-                       }
+            "model_type": type(self).__name__,
+            "hyperparameters": self.hyperparameters,
+            "query_metadata": self._query_metadata,
+            "per_code_language_metadata": self._per_code_language_metadata,
+            "weights": weights_to_save,
+            "run_name": self._run_name,
+        }
 
         path.save_as_compressed_file(data_to_save)
 
@@ -232,7 +241,8 @@ class Model(ABC):
             self._make_loss()
             if is_train:
                 self._make_training_step()
-                self._summary_writer = tf.summary.FileWriter(self._tensorboard_dir, self._sess.graph)
+                self._summary_writer = tf.summary.FileWriter(
+                    self._tensorboard_dir, self._sess.graph)
 
     def _make_model(self, is_train: bool) -> None:
         """
@@ -242,12 +252,13 @@ class Model(ABC):
         tensors of the same shape and rank 2.
         """
         self._placeholders['dropout_keep_rate'] = tf.placeholder(tf.float32,
-                                                                  shape=(),
-                                                                  name='dropout_keep_rate')
+                                                                 shape=(),
+                                                                 name='dropout_keep_rate')
         self._placeholders['sample_loss_weights'] = \
             tf.placeholder_with_default(input=np.ones(shape=[self.hyperparameters['batch_size']],
                                                       dtype=np.float32),
-                                        shape=[self.hyperparameters['batch_size']],
+                                        shape=[
+                                            self.hyperparameters['batch_size']],
                                         name='sample_loss_weights')
 
         with tf.variable_scope("code_encoder"):
@@ -255,24 +266,28 @@ class Model(ABC):
             for (language, language_metadata) in sorted(self._per_code_language_metadata.items(), key=lambda kv: kv[0]):
                 with tf.variable_scope(language):
                     self._code_encoders[language] = self._code_encoder_type(label="code",
-                                                                              hyperparameters=self.hyperparameters,
-                                                                              metadata=language_metadata)
-                    language_encoders.append(self._code_encoders[language].make_model(is_train=is_train))
-            self.ops['code_representations'] = tf.concat(language_encoders, axis=0)
+                                                                            hyperparameters=self.hyperparameters,
+                                                                            metadata=language_metadata)
+                    language_encoders.append(
+                        self._code_encoders[language].make_model(is_train=is_train))
+            self.ops['code_representations'] = tf.concat(
+                language_encoders, axis=0)
         with tf.variable_scope("query_encoder"):
             self._query_encoder = self._query_encoder_type(label="query",
-                                                             hyperparameters=self.hyperparameters,
-                                                             metadata=self._query_metadata)
-            self.ops['query_representations'] = self._query_encoder.make_model(is_train=is_train)
-        
-        code_representation_size = next(iter(self._code_encoders.values())).output_representation_size
+                                                           hyperparameters=self.hyperparameters,
+                                                           metadata=self._query_metadata)
+            self.ops['query_representations'] = self._query_encoder.make_model(
+                is_train=is_train)
+
+        code_representation_size = next(
+            iter(self._code_encoders.values())).output_representation_size
         query_representation_size = self._query_encoder.output_representation_size
         assert code_representation_size == query_representation_size, \
             f'Representations produced for code ({code_representation_size}) and query ({query_representation_size}) cannot differ!'
-        
-        #with tf.variable_scope("query_code_bilinear"):
+
+        # with tf.variable_scope("query_code_bilinear"):
         #      self.ops['bilinear_matrix'] = tf.get_variable(name='bilinear_matrix', shape=[query_representation_size, query_representation_size], initializer=tf.random_normal_initializer())
-        
+
     def get_code_token_embeddings(self, language: str) -> Tuple[tf.Tensor, List[str]]:
         with self._sess.graph.as_default():
             with tf.variable_scope("code_encoder"):
@@ -296,14 +311,18 @@ class Model(ABC):
             similarity_scores = logits
 
             per_sample_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=tf.range(tf.shape(self.ops['code_representations'])[0]),  # [0, 1, 2, 3, ..., n]
+                labels=tf.range(tf.shape(self.ops['code_representations'])[
+                                0]),  # [0, 1, 2, 3, ..., n]
                 logits=logits
             )
         elif self.hyperparameters['loss'] == 'cosine':
-            query_norms = tf.norm(self.ops['query_representations'], axis=-1, keep_dims=True) + 1e-10
-            code_norms = tf.norm(self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
+            query_norms = tf.norm(
+                self.ops['query_representations'], axis=-1, keep_dims=True) + 1e-10
+            code_norms = tf.norm(
+                self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
             cosine_similarities = tf.matmul(self.ops['query_representations'] / query_norms,
-                                            self.ops['code_representations'] / code_norms,
+                                            self.ops['code_representations'] /
+                                            code_norms,
                                             transpose_a=False,
                                             transpose_b=True,
                                             name='code_query_cooccurrence_logits',
@@ -311,14 +330,15 @@ class Model(ABC):
             similarity_scores = cosine_similarities
 
             # A max-margin-like loss, but do not penalize negative cosine similarities.
-            neg_matrix = tf.diag(tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
+            neg_matrix = tf.diag(
+                tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
             per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
-                                             - tf.diag_part(cosine_similarities)
-                                             + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
-                                                             axis=-1))
+                                         - tf.diag_part(cosine_similarities)
+                                         + tf.reduce_max(tf.nn.relu(cosine_similarities + neg_matrix),
+                                                         axis=-1))
         # elif self.hyperparameters['loss'] == 'cosine':
         #     query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
-            
+
         #     query_norms = tf.norm(query_representations_mapping, axis=-1, keep_dims=True) + 1e-10
         #     code_norms = tf.norm(self.ops['code_representations'], axis=-1, keep_dims=True) + 1e-10
         #     cosine_similarities = tf.matmul(query_representations_mapping / query_norms,
@@ -328,7 +348,7 @@ class Model(ABC):
         #                                     name='code_query_cooccurrence_logits',
         #                                     )
         #     similarity_scores = cosine_similarities
-            
+
         #     neg_matrix = tf.diag(tf.fill(dims=[tf.shape(cosine_similarities)[0]], value=float('-inf')))
         #     per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
         #                                      - tf.diag_part(cosine_similarities)
@@ -344,29 +364,37 @@ class Model(ABC):
             similarity_scores = logits
             logprobs = tf.nn.log_softmax(logits)
 
-            min_inf_matrix = tf.diag(tf.fill(dims=[tf.shape(logprobs)[0]], value=float('-inf')))
+            min_inf_matrix = tf.diag(
+                tf.fill(dims=[tf.shape(logprobs)[0]], value=float('-inf')))
             per_sample_loss = tf.maximum(0., self.hyperparameters['margin']
-                                             - tf.diag_part(logprobs)
-                                             + tf.reduce_max(logprobs + min_inf_matrix, axis=-1))
+                                         - tf.diag_part(logprobs)
+                                         + tf.reduce_max(logprobs + min_inf_matrix, axis=-1))
         elif self.hyperparameters['loss'] == 'triplet':
             query_reps = self.ops['query_representations']  # BxD
             code_reps = self.ops['code_representations']    # BxD
 
-            query_reps = tf.broadcast_to(query_reps, shape=[tf.shape(query_reps)[0], tf.shape(query_reps)[0],tf.shape(query_reps)[1]])  # B*xBxD
-            code_reps = tf.broadcast_to(code_reps, shape=[tf.shape(code_reps)[0], tf.shape(code_reps)[0],tf.shape(code_reps)[1]])  # B*xBxD
+            query_reps = tf.broadcast_to(query_reps, shape=[tf.shape(
+                query_reps)[0], tf.shape(query_reps)[0], tf.shape(query_reps)[1]])  # B*xBxD
+            code_reps = tf.broadcast_to(code_reps, shape=[tf.shape(
+                code_reps)[0], tf.shape(code_reps)[0], tf.shape(code_reps)[1]])  # B*xBxD
             code_reps = tf.transpose(code_reps, perm=(1, 0, 2))  # BxB*xD
 
-            all_pair_distances = tf.norm(query_reps - code_reps, axis=-1)  # BxB
+            all_pair_distances = tf.norm(
+                query_reps - code_reps, axis=-1)  # BxB
             similarity_scores = -all_pair_distances
 
-            correct_distances = tf.expand_dims(tf.diag_part(all_pair_distances), axis=-1)  # Bx1
+            correct_distances = tf.expand_dims(
+                tf.diag_part(all_pair_distances), axis=-1)  # Bx1
 
-            pointwise_loss = tf.nn.relu(correct_distances - all_pair_distances + self.hyperparameters['margin']) # BxB
+            pointwise_loss = tf.nn.relu(
+                correct_distances - all_pair_distances + self.hyperparameters['margin'])  # BxB
             pointwise_loss *= (1 - tf.eye(tf.shape(pointwise_loss)[0]))
 
-            per_sample_loss = tf.reduce_sum(pointwise_loss, axis=-1) / (tf.reduce_sum(tf.cast(tf.greater(pointwise_loss, 0), dtype=tf.float32), axis=-1) + 1e-10)  # B
+            per_sample_loss = tf.reduce_sum(pointwise_loss, axis=-1) / (tf.reduce_sum(
+                tf.cast(tf.greater(pointwise_loss, 0), dtype=tf.float32), axis=-1) + 1e-10)  # B
         elif self.hyperparameters['loss'] == 'bilinear-softmax':
-            query_representations_mapping = tf.matmul(self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
+            query_representations_mapping = tf.matmul(
+                self.ops['query_representations'], self.ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping')
             logits = tf.matmul(query_representations_mapping,
                                self.ops['code_representations'],
                                transpose_a=False,
@@ -377,22 +405,28 @@ class Model(ABC):
             similarity_scores = logits
 
             per_sample_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                labels=tf.range(tf.shape(self.ops['code_representations'])[0]),  # [0, 1, 2, 3, ..., n]
+                labels=tf.range(tf.shape(self.ops['code_representations'])[
+                                0]),  # [0, 1, 2, 3, ..., n]
                 logits=logits
             )
         else:
-            raise Exception(f'Unrecognized loss-type "{self.hyperparameters["loss"]}"')
+            raise Exception(
+                f'Unrecognized loss-type "{self.hyperparameters["loss"]}"')
 
-        per_sample_loss = per_sample_loss * self.placeholders['sample_loss_weights']
-        self.ops['loss'] = tf.reduce_sum(per_sample_loss) / tf.reduce_sum(self.placeholders['sample_loss_weights'])
+        per_sample_loss = per_sample_loss * \
+            self.placeholders['sample_loss_weights']
+        self.ops['loss'] = tf.reduce_sum(
+            per_sample_loss) / tf.reduce_sum(self.placeholders['sample_loss_weights'])
 
         # extract the logits from the diagonal of the matrix, which are the logits corresponding to the ground-truth
         correct_scores = tf.diag_part(similarity_scores)
         # compute how many queries have bigger logits than the ground truth (the diagonal) -> which will be incorrectly ranked
-        compared_scores = similarity_scores >= tf.expand_dims(correct_scores, axis=-1)
+        compared_scores = similarity_scores >= tf.expand_dims(
+            correct_scores, axis=-1)
         # for each row of the matrix (query), sum how many logits are larger than the ground truth
         # ...then take the reciprocal of that to get the MRR for each individual query (you will need to take the mean later)
-        self.ops['mrr'] = 1 / tf.reduce_sum(tf.to_float(compared_scores), axis=1)
+        self.ops['mrr'] = 1 / \
+            tf.reduce_sum(tf.to_float(compared_scores), axis=1)
 
     def _make_training_step(self) -> None:
         """
@@ -400,20 +434,25 @@ class Model(ABC):
         """
         optimizer_name = self.hyperparameters['optimizer'].lower()
         if optimizer_name == 'sgd':
-            optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.hyperparameters['learning_rate'])
+            optimizer = tf.train.GradientDescentOptimizer(
+                learning_rate=self.hyperparameters['learning_rate'])
         elif optimizer_name == 'rmsprop':
             optimizer = tf.train.RMSPropOptimizer(learning_rate=self.hyperparameters['learning_rate'],
                                                   decay=self.hyperparameters['learning_rate_decay'],
                                                   momentum=self.hyperparameters['momentum'])
         elif optimizer_name == 'adam':
-            optimizer = tf.train.AdamOptimizer(learning_rate=self.hyperparameters['learning_rate'])
+            optimizer = tf.train.AdamOptimizer(
+                learning_rate=self.hyperparameters['learning_rate'])
         else:
-            raise Exception('Unknown optimizer "%s".' % (self.hyperparameters['optimizer']))
+            raise Exception('Unknown optimizer "%s".' %
+                            (self.hyperparameters['optimizer']))
 
         # Calculate and clip gradients
-        trainable_vars = self.sess.graph.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES)
+        trainable_vars = self.sess.graph.get_collection(
+            tf.GraphKeys.TRAINABLE_VARIABLES)
         gradients = tf.gradients(self.ops['loss'], trainable_vars)
-        clipped_gradients, _ = tf.clip_by_global_norm(gradients, self.hyperparameters['gradient_clip'])
+        clipped_gradients, _ = tf.clip_by_global_norm(
+            gradients, self.hyperparameters['gradient_clip'])
         pruned_clipped_gradients = []
         for (gradient, trainable_var) in zip(clipped_gradients, trainable_vars):
             if gradient is None:
@@ -426,64 +465,74 @@ class Model(ABC):
                                         dtype=tf.float32)
 
             pruned_clipped_gradients.append((gradient, trainable_var))
-        self.ops['train_step'] = optimizer.apply_gradients(pruned_clipped_gradients)
+        self.ops['train_step'] = optimizer.apply_gradients(
+            pruned_clipped_gradients)
 
     def load_metadata(self, data_dirs: List[RichPath], max_files_per_dir: Optional[int] = None, parallelize: bool = True) -> None:
         raw_query_metadata_list = []
-        raw_code_language_metadata_lists: DefaultDict[str, List] = defaultdict(list)
+        raw_code_language_metadata_lists: DefaultDict[str, List] = defaultdict(
+            list)
 
         def metadata_parser_fn(_, file_path: RichPath) -> Iterable[Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]]:
             raw_query_metadata = self._query_encoder_type.init_metadata()
-            per_code_language_metadata: DefaultDict[str, Dict[str, Any]] = defaultdict(self._code_encoder_type.init_metadata)
+            per_code_language_metadata: DefaultDict[str, Dict[str, Any]] = defaultdict(
+                self._code_encoder_type.init_metadata)
 
             for raw_sample in file_path.read_by_file_suffix():
                 sample_language = raw_sample['language']
                 self._code_encoder_type.load_metadata_from_sample(raw_sample['code_tokens'],
-                                                                   per_code_language_metadata[sample_language],
-                                                                   self.hyperparameters['code_use_subtokens'],
-                                                                   self.hyperparameters['code_mark_subtoken_end'])
+                                                                  per_code_language_metadata[sample_language],
+                                                                  self.hyperparameters['code_use_subtokens'],
+                                                                  self.hyperparameters['code_mark_subtoken_end'])
                 self._query_encoder_type.load_metadata_from_sample([d.lower() for d in raw_sample['docstring_tokens']],
-                                                                    raw_query_metadata)
+                                                                   raw_query_metadata)
             yield (raw_query_metadata, per_code_language_metadata)
 
         def received_result_callback(metadata_parser_result: Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]):
             (raw_query_metadata, per_code_language_metadata) = metadata_parser_result
             raw_query_metadata_list.append(raw_query_metadata)
             for (metadata_language, raw_code_language_metadata) in per_code_language_metadata.items():
-                raw_code_language_metadata_lists[metadata_language].append(raw_code_language_metadata)
+                raw_code_language_metadata_lists[metadata_language].append(
+                    raw_code_language_metadata)
 
         def finished_callback():
             pass
-        
+
         assert parallelize
-        
+
         if os.path.isfile("raw_query_metadata_list") and os.path.isfile("raw_code_language_metadata_lists"):
             print('Loading localfile.')
-            with open('raw_query_metadata_list','rb') as pickle_raw_query_metadata_list:
+            with open('raw_query_metadata_list', 'rb') as pickle_raw_query_metadata_list:
                 with open('raw_code_language_metadata_lists', 'rb') as pickle_raw_code_language_metadata_lists:
-                    raw_query_metadata_list = pickle.load(pickle_raw_query_metadata_list)
-                    raw_code_language_metadata_lists = pickle.load(pickle_raw_code_language_metadata_lists)
+                    raw_query_metadata_list = pickle.load(
+                        pickle_raw_query_metadata_list)
+                    raw_code_language_metadata_lists = pickle.load(
+                        pickle_raw_code_language_metadata_lists)
             print('Mission accomplished')
         else:
             if parallelize:
                 run_jobs_in_parallel(get_data_files_from_directory(data_dirs, max_files_per_dir),
-                                    metadata_parser_fn,
-                                    received_result_callback,
-                                    finished_callback)
+                                     metadata_parser_fn,
+                                     received_result_callback,
+                                     finished_callback)
             else:
                 for (idx, file) in enumerate(get_data_files_from_directory(data_dirs, max_files_per_dir)):
                     for res in metadata_parser_fn(idx, file):
                         received_result_callback(res)
-            
-            with open('raw_query_metadata_list','wb') as pickle_raw_query_metadata_list:
-                pickle.dump(raw_query_metadata_list, pickle_raw_query_metadata_list)
-            with open('raw_code_language_metadata_lists', 'wb') as pickle_raw_code_language_metadata_lists:
-                pickle.dump(raw_code_language_metadata_lists, pickle_raw_code_language_metadata_lists)
 
-        self._query_metadata = self._query_encoder_type.finalise_metadata("query", self.hyperparameters, raw_query_metadata_list)
+            with open('raw_query_metadata_list', 'wb') as pickle_raw_query_metadata_list:
+                pickle.dump(raw_query_metadata_list,
+                            pickle_raw_query_metadata_list)
+            with open('raw_code_language_metadata_lists', 'wb') as pickle_raw_code_language_metadata_lists:
+                pickle.dump(raw_code_language_metadata_lists,
+                            pickle_raw_code_language_metadata_lists)
+
+        self._query_metadata = self._query_encoder_type.finalise_metadata(
+            "query", self.hyperparameters, raw_query_metadata_list)
         for (language, raw_per_language_metadata) in raw_code_language_metadata_lists.items():
             self._per_code_language_metadata[language] = \
-                self._code_encoder_type.finalise_metadata("code", self.hyperparameters, raw_per_language_metadata, language)
+                self._code_encoder_type.finalise_metadata(
+                    "code", self.hyperparameters, raw_per_language_metadata, language)
 
     def load_existing_metadata(self, metadata_path: RichPath):
         saved_data = metadata_path.read_by_file_suffix()
@@ -502,7 +551,7 @@ class Model(ABC):
 
     def load_data_from_dirs(self, data_dirs: List[RichPath], is_test: bool,
                             max_files_per_dir: Optional[int] = None,
-                            return_num_original_samples: bool = False, 
+                            return_num_original_samples: bool = False,
                             parallelize: bool = True) -> Union[LoadedSamples, Tuple[LoadedSamples, int]]:
         return self.load_data_from_files(data_files=list(get_data_files_from_directory(data_dirs, max_files_per_dir)),
                                          is_test=is_test,
@@ -524,7 +573,8 @@ class Model(ABC):
             with multiprocessing.Pool() as pool:
                 per_file_results = pool.starmap(parse_data_file, tasks_as_args)
         else:
-            per_file_results = [parse_data_file(*task_args) for task_args in tasks_as_args]
+            per_file_results = [parse_data_file(
+                *task_args) for task_args in tasks_as_args]
         samples: DefaultDict[str, List] = defaultdict(list)
         num_all_samples = 0
         for per_file_result in per_file_results:
@@ -556,20 +606,22 @@ class Model(ABC):
         for (language, language_encoder) in self._code_encoders.items():
             batch_data['per_language_query_data'][language] = {}
             batch_data['per_language_query_data'][language]['query_sample_ids'] = []
-            self._query_encoder.init_minibatch(batch_data['per_language_query_data'][language])
+            self._query_encoder.init_minibatch(
+                batch_data['per_language_query_data'][language])
             batch_data['per_language_code_data'][language] = {}
             batch_data['per_language_code_data'][language]['code_sample_ids'] = []
-            language_encoder.init_minibatch(batch_data['per_language_code_data'][language])
+            language_encoder.init_minibatch(
+                batch_data['per_language_code_data'][language])
         return batch_data
 
     def _extend_minibatch_by_sample(self,
-                                     batch_data: Dict[str, Any],
-                                     sample: Dict[str, Any],
-                                     language: str,
-                                     sample_id: SampleId,
-                                     include_query: bool = True,
-                                     include_code: bool = True,
-                                     is_train: bool = False) -> bool:
+                                    batch_data: Dict[str, Any],
+                                    sample: Dict[str, Any],
+                                    language: str,
+                                    sample_id: SampleId,
+                                    include_query: bool = True,
+                                    include_code: bool = True,
+                                    is_train: bool = False) -> bool:
         """
         Extend a minibatch under construction by one sample.
 
@@ -595,19 +647,21 @@ class Model(ABC):
             query_type = QueryType.FUNCTION_NAME.value
 
         if include_query:
-            batch_data['per_language_query_data'][language]['query_sample_ids'].append(sample_id)
+            batch_data['per_language_query_data'][language]['query_sample_ids'].append(
+                sample_id)
             minibatch_is_full |= self._query_encoder.extend_minibatch_by_sample(
                 batch_data['per_language_query_data'][language], sample, is_train=is_train, query_type=query_type)
         if include_code:
-            batch_data['per_language_code_data'][language]['code_sample_ids'].append(sample_id)
+            batch_data['per_language_code_data'][language]['code_sample_ids'].append(
+                sample_id)
             minibatch_is_full |= self._code_encoders[language].extend_minibatch_by_sample(
                 batch_data['per_language_code_data'][language], sample, is_train=is_train, query_type=query_type)
         return minibatch_is_full or batch_data['samples_in_batch'] >= self.hyperparameters['batch_size']
 
     def _minibatch_to_feed_dict(self,
-                                 batch_data: Dict[str, Any],
-                                 language_to_reweighting_factor: Optional[Dict[str, float]],
-                                 is_train: bool) -> Tuple[Dict[tf.Tensor, Any], List[SampleId]]:
+                                batch_data: Dict[str, Any],
+                                language_to_reweighting_factor: Optional[Dict[str, float]],
+                                is_train: bool) -> Tuple[Dict[tf.Tensor, Any], List[SampleId]]:
         """
         Take a collected minibatch and turn it into something that can be fed directly to the constructed model
 
@@ -621,14 +675,16 @@ class Model(ABC):
             A pair of a map from model placeholders to appropriate data structures and a list of sample ids
             such that id_list[i] = id means that the i-th minibatch entry corresponds to the sample identified by id.
         """
-        final_minibatch = {self._placeholders['dropout_keep_rate']: self.hyperparameters['dropout_keep_rate'] if is_train else 1.0}
+        final_minibatch = {self._placeholders['dropout_keep_rate']                           : self.hyperparameters['dropout_keep_rate'] if is_train else 1.0}
 
         # Finalise the code representations while joining the query information:
         full_query_batch_data: Dict[str, Any] = {'code_sample_ids': []}
         language_weights = []
         for (language, language_encoder) in self._code_encoders.items():
-            language_encoder.minibatch_to_feed_dict(batch_data['per_language_code_data'][language], final_minibatch, is_train)
-            full_query_batch_data['code_sample_ids'].extend(batch_data['per_language_code_data'][language]['code_sample_ids'])
+            language_encoder.minibatch_to_feed_dict(
+                batch_data['per_language_code_data'][language], final_minibatch, is_train)
+            full_query_batch_data['code_sample_ids'].extend(
+                batch_data['per_language_code_data'][language]['code_sample_ids'])
 
             for (key, value) in batch_data['per_language_query_data'][language].items():
                 if key in full_query_batch_data:
@@ -640,27 +696,31 @@ class Model(ABC):
                         raise ValueError()
                 else:
                     full_query_batch_data[key] = value
-            
-            #print(language, len(batch_data['per_language_code_data'][language]['tokens']), len(final_minibatch))
-            
-            if language_to_reweighting_factor is not None:
-                language_weights.extend([language_to_reweighting_factor[language]] * len(batch_data['per_language_code_data'][language]['tokens']))
 
-        self._query_encoder.minibatch_to_feed_dict(full_query_batch_data, final_minibatch, is_train)
+            #print(language, len(batch_data['per_language_code_data'][language]['tokens']), len(final_minibatch))
+
+            if language_to_reweighting_factor is not None:
+                language_weights.extend([language_to_reweighting_factor[language]] * len(
+                    batch_data['per_language_code_data'][language]['tokens']))
+
+        self._query_encoder.minibatch_to_feed_dict(
+            full_query_batch_data, final_minibatch, is_train)
         if language_to_reweighting_factor is not None:
-            final_minibatch[self._placeholders['sample_loss_weights']] = language_weights
-        if len(full_query_batch_data['query_sample_ids']) > 0:  # If we are only computing code representations, this will be empty
+            final_minibatch[self._placeholders['sample_loss_weights']
+                            ] = language_weights
+        # If we are only computing code representations, this will be empty
+        if len(full_query_batch_data['query_sample_ids']) > 0:
             return final_minibatch, full_query_batch_data['query_sample_ids']
         else:
             return final_minibatch, full_query_batch_data['code_sample_ids']
 
     def _split_data_into_minibatches(self,
-                                      data: LoadedSamples,
-                                      is_train: bool = False,
-                                      include_query: bool = True,
-                                      include_code: bool = True,
-                                      drop_incomplete_final_minibatch: bool = True,
-                                      compute_language_weightings: bool = False) \
+                                     data: LoadedSamples,
+                                     is_train: bool = False,
+                                     include_query: bool = True,
+                                     include_code: bool = True,
+                                     drop_incomplete_final_minibatch: bool = True,
+                                     compute_language_weightings: bool = False) \
             -> Iterable[Tuple[Dict[tf.Tensor, Any], Any, int, List[SampleId]]]:
         """
         Take tensorised data and chunk into feed dictionaries corresponding to minibatches.
@@ -714,38 +774,46 @@ class Model(ABC):
 
         while len(language_to_num_remaining_samples) > 0:
             # Pick a language for the sample, by weighted sampling over the remaining data points:
-            remaining_languages = list(language_to_num_remaining_samples.keys())
-            total_num_remaining_samples = sum(language_to_num_remaining_samples.values())
+            remaining_languages = list(
+                language_to_num_remaining_samples.keys())
+            total_num_remaining_samples = sum(
+                language_to_num_remaining_samples.values())
             picked_language = np.random.choice(a=remaining_languages,
                                                p=[float(language_to_num_remaining_samples[lang]) / total_num_remaining_samples
                                                   for lang in remaining_languages])
 
             # Pick an example for the given language, and update counters:
-            picked_example_idx = language_to_num_remaining_samples[picked_language] - 1  # Note that indexing is 0-based and counting 1-based...
+            # Note that indexing is 0-based and counting 1-based...
+            picked_example_idx = language_to_num_remaining_samples[picked_language] - 1
             language_to_num_remaining_samples[picked_language] -= 1
             if language_to_num_remaining_samples[picked_language] == 0:
-                del(language_to_num_remaining_samples[picked_language])  # We are done with picked_language now
-            picked_sample = data[picked_language][language_to_idx_list[picked_language][picked_example_idx]]
+                # We are done with picked_language now
+                del(language_to_num_remaining_samples[picked_language])
+            picked_sample = data[picked_language][language_to_idx_list[picked_language]
+                                                  [picked_example_idx]]
 
             # Add the example to the current minibatch under preparation:
             batch_data['samples_in_batch'] += 1
             batch_finished = self._extend_minibatch_by_sample(batch_data,
-                                                               picked_sample,
-                                                               language=picked_language,
-                                                               sample_id=(picked_language, language_to_idx_list[picked_language][picked_example_idx]),
-                                                               include_query=include_query,
-                                                               include_code=include_code,
-                                                               is_train=is_train
-                                                               )
+                                                              picked_sample,
+                                                              language=picked_language,
+                                                              sample_id=(
+                                                                  picked_language, language_to_idx_list[picked_language][picked_example_idx]),
+                                                              include_query=include_query,
+                                                              include_code=include_code,
+                                                              is_train=is_train
+                                                              )
             total_samples_used += 1
 
             if batch_finished:
-                feed_dict, original_sample_ids = self._minibatch_to_feed_dict(batch_data, language_to_reweighting_factor, is_train)
+                feed_dict, original_sample_ids = self._minibatch_to_feed_dict(
+                    batch_data, language_to_reweighting_factor, is_train)
                 yield feed_dict, batch_data['samples_in_batch'], total_samples_used, original_sample_ids
                 batch_data = self._init_minibatch()
 
         if not drop_incomplete_final_minibatch and batch_data['samples_in_batch'] > 0:
-            feed_dict, original_sample_ids = self._minibatch_to_feed_dict(batch_data, language_to_reweighting_factor, is_train)
+            feed_dict, original_sample_ids = self._minibatch_to_feed_dict(
+                batch_data, language_to_reweighting_factor, is_train)
             yield feed_dict, batch_data['samples_in_batch'], total_samples_used, original_sample_ids
 
     def _run_epoch_in_batches(self, data: LoadedSamples, epoch_name: str, is_train: bool, quiet: bool = False) -> Tuple[float, float, float]:
@@ -763,7 +831,8 @@ class Model(ABC):
         epoch_loss, loss = 0.0, 0.0
         mrr_sum, mrr = 0.0, 0.0
         epoch_start = time.time()
-        data_generator = self._split_data_into_minibatches(data, is_train=is_train, compute_language_weightings=True)
+        data_generator = self._split_data_into_minibatches(
+            data, is_train=is_train, compute_language_weightings=True)
         samples_used_so_far = 0
         printed_one_line = False
         for minibatch_counter, (batch_data_dict, samples_in_batch, samples_used_so_far, _) in enumerate(data_generator):
@@ -815,17 +884,24 @@ class Model(ABC):
         model_path = RichPath.create(self.model_save_path, azure_info_path)
         with self._sess.as_default():
             tf.set_random_seed(self.hyperparameters['seed'])
-            train_data_per_lang_nums = {language: len(samples) for language, samples in train_data.items()}
-            print('Training on %s samples.' % (", ".join("%i %s" % (num, lang) for (lang, num) in train_data_per_lang_nums.items())))
-            valid_data_per_lang_nums = {language: len(samples) for language, samples in valid_data.items()}
-            print('Validating on %s samples.' % (", ".join("%i %s" % (num, lang) for (lang, num) in valid_data_per_lang_nums.items())))
+            train_data_per_lang_nums = {language: len(
+                samples) for language, samples in train_data.items()}
+            print('Training on %s samples.' % (", ".join("%i %s" % (num, lang)
+                                                         for (lang, num) in train_data_per_lang_nums.items())))
+            valid_data_per_lang_nums = {language: len(
+                samples) for language, samples in valid_data.items()}
+            print('Validating on %s samples.' % (", ".join("%i %s" % (num, lang)
+                                                           for (lang, num) in valid_data_per_lang_nums.items())))
 
             if resume:
                 # Variables should have been restored.
-                best_val_mrr_loss, best_val_mrr, _ = self._run_epoch_in_batches(valid_data, "RESUME (valid)", is_train=False, quiet=quiet)
-                self.train_log('Validation Loss on Resume: %.6f' % (best_val_mrr_loss,))
+                best_val_mrr_loss, best_val_mrr, _ = self._run_epoch_in_batches(
+                    valid_data, "RESUME (valid)", is_train=False, quiet=quiet)
+                self.train_log('Validation Loss on Resume: %.6f' %
+                               (best_val_mrr_loss,))
             else:
-                init_op = tf.variables_initializer(self._sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
+                init_op = tf.variables_initializer(
+                    self._sess.graph.get_collection(tf.GraphKeys.GLOBAL_VARIABLES))
                 self._sess.run(init_op)
                 self.save(model_path)
                 best_val_mrr = 0
@@ -838,15 +914,16 @@ class Model(ABC):
 
                 # run training loop and log metrics
                 train_loss, train_mrr, train_time = self._run_epoch_in_batches(train_data, "%i (train)" % (epoch_number,),
-                                                                                is_train=True,
-                                                                                quiet=quiet)
+                                                                               is_train=True,
+                                                                               quiet=quiet)
                 self.train_log(' Training Loss: %.6f' % (train_loss,))
 
                 # run validation calcs and log metrics
                 val_loss, val_mrr, val_time = self._run_epoch_in_batches(valid_data, "%i (valid)" % (epoch_number,),
-                                                                          is_train=False,
-                                                                          quiet=quiet)
-                self.train_log(' Validation:  Loss: %.6f | MRR: %.6f' % (val_loss, val_mrr,))
+                                                                         is_train=False,
+                                                                         quiet=quiet)
+                self.train_log(' Validation:  Loss: %.6f | MRR: %.6f' %
+                               (val_loss, val_mrr,))
 
                 log = {'epoch': epoch_number,
                        'train-loss': train_loss,
@@ -855,14 +932,14 @@ class Model(ABC):
                        'val-loss': val_loss,
                        'val-mrr': val_mrr,
                        'val-time-sec': val_time}
-                
+
                 # log to wandb
                 wandb.log(log)
-            
+
                 # log to tensorboard
                 for key in log:
                     if key != 'epoch':
-                        self._log_tensorboard_scalar(tag=key, 
+                        self._log_tensorboard_scalar(tag=key,
                                                      value=log[key],
                                                      step=epoch_number)
 
@@ -879,7 +956,8 @@ class Model(ABC):
 
                     no_improvement_counter = 0
                     self.save(model_path)
-                    self.train_log("  Best result so far -- saved model as '%s'." % (model_path,))
+                    self.train_log(
+                        "  Best result so far -- saved model as '%s'." % (model_path,))
                 else:
                     # record epochs without improvement for early stopping
                     no_improvement_counter += 1
@@ -896,10 +974,10 @@ class Model(ABC):
         return model_path
 
     def _compute_representations_batched(self,
-                                          raw_data: List[Dict[str, Any]],
-                                          data_loader_fn: Callable[[Dict[str, Any], Dict[str, Any]], bool],
-                                          model_representation_op: tf.Tensor,
-                                          representation_type: RepresentationType) -> List[Optional[np.ndarray]]:
+                                         raw_data: List[Dict[str, Any]],
+                                         data_loader_fn: Callable[[Dict[str, Any], Dict[str, Any]], bool],
+                                         model_representation_op: tf.Tensor,
+                                         representation_type: RepresentationType) -> List[Optional[np.ndarray]]:
         """Return a list of vector representation of each datapoint or None if the representation for that datapoint
         cannot be computed.
 
@@ -916,7 +994,8 @@ class Model(ABC):
              A list of either a 1D numpy array of the representation of the i-th element in data or None if a
              representation could not be computed.
         """
-        tensorized_data = defaultdict(list)  # type: Dict[str, List[Dict[str, Any]]]
+        tensorized_data = defaultdict(
+            list)  # type: Dict[str, List[Dict[str, Any]]]
         sample_to_tensorised_data_id = []  # type: List[Optional[SampleId]]
         for raw_sample in raw_data:
             language = raw_sample['language']
@@ -925,29 +1004,33 @@ class Model(ABC):
             sample: Dict = {}
             valid_example = data_loader_fn(raw_sample, sample)
             if valid_example:
-                sample_to_tensorised_data_id.append((language, len(tensorized_data[language])))
+                sample_to_tensorised_data_id.append(
+                    (language, len(tensorized_data[language])))
                 tensorized_data[language].append(sample)
             else:
                 sample_to_tensorised_data_id.append(None)
         assert len(sample_to_tensorised_data_id) == len(raw_data)
 
         data_generator = self._split_data_into_minibatches(tensorized_data,
-                                                            is_train=False,
-                                                            include_query=representation_type == RepresentationType.QUERY,
-                                                            include_code=representation_type == RepresentationType.CODE,
-                                                            drop_incomplete_final_minibatch=False)
+                                                           is_train=False,
+                                                           include_query=representation_type == RepresentationType.QUERY,
+                                                           include_code=representation_type == RepresentationType.CODE,
+                                                           drop_incomplete_final_minibatch=False)
 
         computed_representations = []
         original_tensorised_data_ids = []  # type: List[SampleId]
         for minibatch_counter, (batch_data_dict, samples_in_batch, samples_used_so_far, batch_original_tensorised_data_ids) in enumerate(data_generator):
-            #print(model_representation_op)
-            op_results = self._sess.run(model_representation_op, feed_dict=batch_data_dict)
-            #print(op_results.shape)
+            # print(model_representation_op)
+            op_results = self._sess.run(
+                model_representation_op, feed_dict=batch_data_dict)
+            # print(op_results.shape)
             #assert False
             computed_representations.append(op_results)
-            original_tensorised_data_ids.extend(batch_original_tensorised_data_ids)
+            original_tensorised_data_ids.extend(
+                batch_original_tensorised_data_ids)
 
-        computed_representations = np.concatenate(computed_representations, axis=0)
+        computed_representations = np.concatenate(
+            computed_representations, axis=0)
         tensorised_data_id_to_representation_idx = {tensorised_data_id: repr_idx
                                                     for (repr_idx, tensorised_data_id) in enumerate(original_tensorised_data_ids)}
         reordered_representations: List = []
@@ -955,7 +1038,8 @@ class Model(ABC):
             if tensorised_data_id is None:
                 reordered_representations.append(None)
             else:
-                reordered_representations.append(computed_representations[tensorised_data_id_to_representation_idx[tensorised_data_id]])
+                reordered_representations.append(
+                    computed_representations[tensorised_data_id_to_representation_idx[tensorised_data_id]])
         return reordered_representations
 
     def get_query_representations(self, query_data: List[Dict[str, Any]]) -> List[Optional[np.ndarray]]:
@@ -971,10 +1055,10 @@ class Model(ABC):
                 is_test=True)
 
         return self._compute_representations_batched(query_data,
-                                                      data_loader_fn=query_data_loader,
-                                                      model_representation_op=self._ops['query_representations'],
-                                                      #model_representation_op=tf.matmul(self._ops['query_representations'], self._ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping'),
-                                                      representation_type=RepresentationType.QUERY)
+                                                     data_loader_fn=query_data_loader,
+                                                     model_representation_op=self._ops['query_representations'],
+                                                     #model_representation_op=tf.matmul(self._ops['query_representations'], self._ops['bilinear_matrix'], transpose_a=False, transpose_b=False, name='query_representations_mapping'),
+                                                     representation_type=RepresentationType.QUERY)
 
     def get_code_representations(self, code_data: List[Dict[str, Any]]) -> List[Optional[np.ndarray]]:
         def code_data_loader(sample_to_parse, result_holder):
@@ -996,8 +1080,6 @@ class Model(ABC):
                 return False
 
         return self._compute_representations_batched(code_data,
-                                                      data_loader_fn=code_data_loader,
-                                                      model_representation_op=self._ops['code_representations'],
-                                                      representation_type=RepresentationType.CODE)  
-
-
+                                                     data_loader_fn=code_data_loader,
+                                                     model_representation_op=self._ops['code_representations'],
+                                                     representation_type=RepresentationType.CODE)
