@@ -129,8 +129,9 @@ def run(arguments, tag_in_vcs=False) -> None:
     save_folder = arguments['SAVE_FOLDER']
 
     model_class = model_restore_helper.get_model_class_from_name(arguments['--model'])
-
+    
     hyperparameters = model_class.get_default_hyperparameters()
+
     run_name = make_run_id(arguments)
 
     # make name of wandb run = run_id (Doesn't populate yet)
@@ -168,7 +169,6 @@ def run(arguments, tag_in_vcs=False) -> None:
                          'CUDA_VISIBLE_DEVICES': os.environ.get("CUDA_VISIBLE_DEVICES", 'Not Set'),
                          'run-name': arguments.get('--run-name'),
                          'CLI-command': ' '.join(sys.argv)})
-
 
     if arguments.get('--evaluate-model'):
         model_path = RichPath.create(arguments['--evaluate-model'])

@@ -25,7 +25,7 @@ Data preparation step is seperated from the training step because of computing t
 ### Training and evaluation
 Start the training
 ```
-python3 -m train
+python3 -m train --model neuralbow
 ```
 The model will be trained for each language. The evaluation metric is MRR for validation and test sets, however, the output of prediction will be evaluated by GitHub using nDCG.
 
