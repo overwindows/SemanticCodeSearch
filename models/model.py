@@ -10,7 +10,8 @@ from typing import List, Dict, Any, Iterable, Tuple, Optional, Union, Callable, 
 from dpu_utils.codeutils import split_identifier_into_parts
 import numpy as np
 import wandb
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from dpu_utils.utils import RichPath
 
 from utils.py_utils import run_jobs_in_parallel
@@ -18,6 +19,7 @@ from encoders import Encoder, QueryType
 import pickle
 import re
 
+tf.disable_v2_behavior() 
 
 LoadedSamples = Dict[str, List[Dict[str, Any]]]
 SampleId = Tuple[str, int]
@@ -161,14 +163,16 @@ class Model(ABC):
         else:
             self._log_save_dir = log_save_dir  # type: str
 
-        config = tf.compat.v1.ConfigProto()
+        #config = tf.compat.v1.ConfigProto()
+        config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         if "gpu_device_id" in self.hyperparameters:
             config.gpu_options.visible_device_list = str(
                 self.hyperparameters["gpu_device_id"])
 
         graph = tf.Graph()
-        self._sess = tf.compat.v1.Session(graph=graph, config=config)
+        #self._sess = tf.compat.v1.Session(graph=graph, config=config)
+        self._sess = tf.Session(graph=graph, config=config)
 
         # save directory as tensorboard.
         self._tensorboard_dir = log_save_dir
@@ -244,7 +248,8 @@ class Model(ABC):
         with self._sess.graph.as_default():
             random.seed(self.hyperparameters['seed'])
             np.random.seed(self.hyperparameters['seed'])
-            tf.compat.v1.set_random_seed(self.hyperparameters['seed'])
+            #tf.compat.v1.set_random_seed(self.hyperparameters['seed'])
+            tf.set_random_seed(self.hyperparameters['seed'])
 
             self._make_model(is_train=is_train)
             self._make_loss()
@@ -547,11 +552,9 @@ class Model(ABC):
                 self._code_encoder_type.finalise_metadata(
                     "code", self.hyperparameters, raw_per_language_metadata, language)
             raw_language_metadata_list.extend(raw_per_language_metadata)
-        
+
         self._shared_code_language_metadata = self._code_encoder_type.finalise_metadata(
             'shared', self.hyperparameters, raw_language_metadata_list)
-
-
 
     def load_existing_metadata(self, metadata_path: RichPath):
         saved_data = metadata_path.read_by_file_suffix()
@@ -694,7 +697,7 @@ class Model(ABC):
             A pair of a map from model placeholders to appropriate data structures and a list of sample ids
             such that id_list[i] = id means that the i-th minibatch entry corresponds to the sample identified by id.
         """
-        final_minibatch = {self._placeholders['dropout_keep_rate']: self.hyperparameters['dropout_keep_rate'] if is_train else 1.0}
+        final_minibatch = {self._placeholders['dropout_keep_rate']                           : self.hyperparameters['dropout_keep_rate'] if is_train else 1.0}
 
         # Finalise the code representations while joining the query information:
         full_query_batch_data: Dict[str, Any] = {'code_sample_ids': []}

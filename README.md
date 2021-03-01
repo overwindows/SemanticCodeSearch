@@ -49,10 +49,12 @@ cd react-code-search
 npm install
 npm start
 ```
+
 <!--
 ### ElasticSearch
 Check index
 ```
 curl -X GET 'http://localhost:9200/_cat/indices?v'
 ```
+Googl ScaNN
 -->

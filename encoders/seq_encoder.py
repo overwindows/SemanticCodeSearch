@@ -7,7 +7,9 @@ import re
 from utils.bpevocabulary import BpeVocabulary
 from utils.tfutils import convert_and_pad_token_sequence
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
+
 from dpu_utils.codeutils import split_identifier_into_parts
 from dpu_utils.mlutils import Vocabulary
 
@@ -66,19 +68,25 @@ class SeqEncoder(Encoder):
         Returns:
             3D tensor of shape (batch size, sequence length, embedding dimension)
         """
-        # print('Seq Encoder Label: {}'.format(self.label))
+        # if self.label == 'query':
+        #     token_embeddings = tf.get_variable(name='query_token_embeddings',
+        #                                        initializer=tf.glorot_uniform_initializer(),
+        #                                        shape=[len(self.metadata['token_vocab']),
+        #                                               self.get_hyper('token_embedding_size')],)
+        # else:
+        #     with tf.variable_scope("shared_code_embedding", reuse=tf.compat.v1.AUTO_REUSE) as scope:
+        #         token_embeddings = tf.get_variable(name='code_token_embeddings',
+        #                                            initializer=tf.glorot_uniform_initializer(),
+        #                                            shape=[len(self.metadata['token_vocab']),
+        #                                                   self.get_hyper('token_embedding_size')],)
 
-        if self.label == 'query':
-            token_embeddings = tf.get_variable(name='query_token_embeddings',
-                                               initializer=tf.glorot_uniform_initializer(),
-                                               shape=[len(self.metadata['token_vocab']),
-                                                      self.get_hyper('token_embedding_size')],)
-        else:
-            # with tf.variable_scope("code", reuse=tf.compat.v1.AUTO_REUSE) as scope:
-                token_embeddings = tf.get_variable(name='code_token_embeddings',
-                                                   initializer=tf.glorot_uniform_initializer(),
-                                                   shape=[len(self.metadata['token_vocab']),
-                                                          self.get_hyper('token_embedding_size')],)
+
+        token_embeddings = tf.get_variable(name='token_embeddings',
+                                           initializer=tf.glorot_uniform_initializer(),
+                                           shape=[len(self.metadata['token_vocab']),
+                                                  self.get_hyper('token_embedding_size')],
+                                           )
+
         self.__embeddings = token_embeddings
 
         token_embeddings = tf.nn.dropout(token_embeddings,

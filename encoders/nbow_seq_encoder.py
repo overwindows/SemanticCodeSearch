@@ -1,6 +1,7 @@
 from typing import Dict, Any
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
 
 from .masked_seq_encoder import MaskedSeqEncoder
 from utils.tfutils import pool_sequence_embedding
@@ -15,9 +16,9 @@ class NBoWEncoder(MaskedSeqEncoder):
         hypers.update(encoder_hypers)
         return hypers
 
-    def __init__(self, label: str, lang: str, hyperparameters: Dict[str, Any], metadata: Dict[str, Any]):
+    def __init__(self, label: str, hyperparameters: Dict[str, Any], metadata: Dict[str, Any]):
         super().__init__(label, hyperparameters, metadata)
-        self.lang = lang
+        # self.lang = lang
 
     @property
     def output_representation_size(self):
@@ -31,8 +32,8 @@ class NBoWEncoder(MaskedSeqEncoder):
             seq_token_mask = self.placeholders['tokens_mask']
             seq_token_lengths = tf.reduce_sum(seq_token_mask, axis=1)  # B
             
-            with tf.variable_scope(self.lang):
-                return pool_sequence_embedding(self.get_hyper('nbow_pool_mode').lower(),
+            # with tf.variable_scope(self.lang):
+            return pool_sequence_embedding(self.get_hyper('nbow_pool_mode').lower(),
                                             sequence_token_embeddings=seq_tokens_embeddings,
                                             sequence_lengths=seq_token_lengths,
                                             sequence_token_masks=seq_token_mask)

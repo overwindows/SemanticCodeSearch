@@ -1,10 +1,14 @@
 from typing import Dict, Any, Optional, Type
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
+
 from dpu_utils.utils import RichPath
 
-from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
-from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1,NeuralBoWModel_V2
+from models import Model, NeuralBoWModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+#from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+from models import NeuralBoWModel_V1, CrossAttentionModel,NeuralBoWModel_V2
+#from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1,NeuralBoWModel_V2
 
 
 def get_model_class_from_name(model_name: str) -> Type[Model]:

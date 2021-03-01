@@ -1,7 +1,9 @@
 from typing import List, Tuple, Dict, Any, Optional, Union
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
+
 from tensorflow.python.ops.init_ops import Initializer
 
 from dpu_utils.mlutils import Vocabulary

@@ -17,7 +17,7 @@ class SelfAttentionModel(Model):
             'code_mark_subtoken_end': False,
             #'loss': 'bilinear-softmax',
             'loss': 'softmax',
-            'batch_size': 32,
+            'batch_size': 1000,
         }
         hypers.update(super().get_default_hyperparameters())
         hypers.update(model_hypers)

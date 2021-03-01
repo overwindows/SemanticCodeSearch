@@ -57,11 +57,14 @@ class NeuralBoWModel_V2(Model):
         with tf.variable_scope("code_encoder"):
             language_encoders = []
             for (language, language_metadata) in sorted(self._per_code_language_metadata.items(), key=lambda kv: kv[0]):
-                with tf.variable_scope(language):
+                with tf.variable_scope('code_encoder'):
                     self._code_encoders[language] = self._code_encoder_type(label="code",
                                                                             lang=language,
                                                                             hyperparameters=self.hyperparameters,
                                                                             metadata=self._shared_code_language_metadata)
+                    
+                    # language_encoders.append(
+                    #     self._code_encoders[language].make_model(is_train=is_train))
                     language_encoders.append(tf.matmul(
                         self._code_encoders[language].make_model(
                             is_train=is_train),
@@ -73,15 +76,20 @@ class NeuralBoWModel_V2(Model):
 
         with tf.variable_scope("query_encoder"):
             self._query_encoder = self._query_encoder_type(label="query",
-                                                           lang='natrual',
+                                                           lang='natural',
                                                            hyperparameters=self.hyperparameters,
                                                            metadata=self._query_metadata)
-            self._ops['query_representations'] = self._query_encoder.make_model(
-                is_train=is_train)
+            # self._ops['query_representations'] = self._query_encoder.make_model(
+            #     is_train=is_train)
+            self._ops['query_representations'] = tf.matmul(
+                        self._query_encoder.make_model(
+                            is_train=is_train),
+                        tf.get_variable(name='natural', shape=[self._query_encoder.output_representation_size,
+                                                              self._query_encoder.output_representation_size], initializer=tf.random_normal_initializer()),
+                        transpose_a=False, transpose_b=False)
 
-        code_representation_size = next(
+        code_representation_size=next(
             iter(self._code_encoders.values())).output_representation_size
-        # code_representation_size = self._shared_code_encoder.output_representation_size
-        query_representation_size = self._query_encoder.output_representation_size
+        query_representation_size=self._query_encoder.output_representation_size
         assert code_representation_size == query_representation_size, \
             f'Representations produced for code ({code_representation_size}) and query ({query_representation_size}) cannot differ!'
