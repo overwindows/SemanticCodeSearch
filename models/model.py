@@ -133,7 +133,9 @@ class Model(ABC):
         self._code_encoder_type = code_encoder_type
         # OrderedDict as we are using the order of languages a few times...
         self._code_encoders: OrderedDict[str, Any] = OrderedDict()
-        self._shared_code_encoders: Any = None
+
+#         self._shared_code_encoders: Any = None
+
         self._query_encoder_type = query_encoder_type
         self._query_encoder: Any = None
 
@@ -143,7 +145,9 @@ class Model(ABC):
 
         self._query_metadata: Dict[str, Any] = {}
         self._per_code_language_metadata: Dict[str, Any] = {}
-        self._shared_code_language_metadata: Dict[str, Any] = {}
+
+#         self._shared_code_language_metadata: Dict[str, Any] = {}
+
         self._placeholders: Dict[str, Union[tf.placeholder,
                                             tf.placeholder_with_default]] = {}
         self._ops: Dict[str, Any] = {}
@@ -257,8 +261,10 @@ class Model(ABC):
                 self._make_training_step()
                 self._summary_writer = tf.summary.FileWriter(
                     self._tensorboard_dir, self._sess.graph)
-            print('-'*100) 
-            print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
+
+#             print('-'*100) 
+#             print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
+
 
     def _make_model(self, is_train: bool) -> None:
         """
@@ -489,7 +495,8 @@ class Model(ABC):
         raw_code_language_metadata_lists: DefaultDict[str, List] = defaultdict(
             list)
 
-        print(self.hyperparameters)
+#         print(self.hyperparameters)
+
 
         def metadata_parser_fn(_, file_path: RichPath) -> Iterable[Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]]:
             raw_query_metadata = self._query_encoder_type.init_metadata()
@@ -548,15 +555,18 @@ class Model(ABC):
         self._query_metadata = self._query_encoder_type.finalise_metadata(
             "query", self.hyperparameters, raw_query_metadata_list)
 
-        raw_language_metadata_list = []
+#         raw_language_metadata_list = []
+
         for (language, raw_per_language_metadata) in raw_code_language_metadata_lists.items():
             self._per_code_language_metadata[language] = \
                 self._code_encoder_type.finalise_metadata(
                     "code", self.hyperparameters, raw_per_language_metadata, language)
-            raw_language_metadata_list.extend(raw_per_language_metadata)
+
+#             raw_language_metadata_list.extend(raw_per_language_metadata)
 
         # self._shared_code_language_metadata = self._code_encoder_type.finalise_metadata(
         #     'shared', self.hyperparameters, raw_language_metadata_list)
+
 
     def load_existing_metadata(self, metadata_path: RichPath):
         saved_data = metadata_path.read_by_file_suffix()
