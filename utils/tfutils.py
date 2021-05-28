@@ -1,7 +1,9 @@
 from typing import List, Tuple, Dict, Any, Optional, Union
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
+
 from tensorflow.python.ops.init_ops import Initializer
 
 from dpu_utils.mlutils import Vocabulary
@@ -36,7 +38,8 @@ def convert_and_pad_token_sequence(token_vocab: Union[Vocabulary, BpeVocabulary]
         token_mask = np.array(
             [1 if token_ids[i] > 0 else 0 for i in range(len(token_ids))])
         return token_ids, token_mask
-
+    
+    assert False
     if pad_from_left:
         token_sequence = token_sequence[-output_tensor_size:]
     else:

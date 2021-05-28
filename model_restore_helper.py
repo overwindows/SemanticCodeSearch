@@ -1,18 +1,24 @@
 from typing import Dict, Any, Optional, Type
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior() 
+
 from dpu_utils.utils import RichPath
 
-from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel, PolyAttentionModel
-from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1
+from models import Model, NeuralBoWModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+#from models import Model, NeuralBoWModel, RNNModel, SelfAttentionModel, ConvolutionalModel, ConvSelfAttentionModel
+from models import NeuralBoWModel_V1, CrossAttentionModel,NeuralBoWModel_V2
+#from models import NeuralBoWModel_V1, CrossAttentionModel, RNNModel_V1,NeuralBoWModel_V2
 
 
 def get_model_class_from_name(model_name: str) -> Type[Model]:
     model_name = model_name.lower()
     if model_name in ['neuralbow', 'neuralbowmodel']:
         return NeuralBoWModel
-    if model_name in ['neuralbow_v1', 'neuralbowmodel_v1']:
+    elif model_name in ['neuralbow_v1', 'neuralbowmodel_v1']:
         return NeuralBoWModel_V1
+    elif model_name in ['neuralbow_v2', 'neuralbowmodel_v2']:
+        return NeuralBoWModel_V2
     elif model_name in ['rnn', 'rnnmodel']:
         return RNNModel
     elif model_name in ['rnn_v1', 'rnnmodel_v1']:
@@ -25,8 +31,8 @@ def get_model_class_from_name(model_name: str) -> Type[Model]:
         return ConvSelfAttentionModel
     elif model_name in {'crossatt', 'crossattention', 'crossattentionmodel'}:
         return CrossAttentionModel
-    elif model_name in {'polyatt', 'polyattention', 'polyattentionmodel'}:
-        return PolyAttentionModel
+    # elif model_name in {'polyatt', 'polyattention', 'polyattentionmodel'}:
+    #     return PolyAttentionModel
     else:
         raise Exception("Unknown model '%s'!" % model_name)
 

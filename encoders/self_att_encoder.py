@@ -12,10 +12,11 @@ class SelfAttentionEncoder(MaskedSeqEncoder):
     def get_default_hyperparameters(cls) -> Dict[str, Any]:
         encoder_hypers = {'self_attention_activation': 'gelu',
                           'self_attention_hidden_size': 128,
-                          'self_attention_intermediate_size': 512,
-                          'self_attention_num_layers': 3,
+                          'self_attention_intermediate_size': 256,
+                          'self_attention_num_layers': 2,
                           'self_attention_num_heads': 8,
-                          'self_attention_pool_mode': 'weighted_mean',
+                        #   'self_attention_pool_mode': 'weighted_mean',
+                           'self_attention_pool_mode': 'hybrid',
                           }
         hypers = super().get_default_hyperparameters()
         hypers.update(encoder_hypers)

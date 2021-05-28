@@ -7,16 +7,19 @@ from abc import ABC, abstractmethod
 from collections import defaultdict, OrderedDict
 from enum import Enum, auto
 from typing import List, Dict, Any, Iterable, Tuple, Optional, Union, Callable, Type, DefaultDict
-
+from dpu_utils.codeutils import split_identifier_into_parts
 import numpy as np
 import wandb
-import tensorflow as tf
+#import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from dpu_utils.utils import RichPath
 
 from utils.py_utils import run_jobs_in_parallel
 from encoders import Encoder, QueryType
 import pickle
+import re
 
+tf.disable_v2_behavior() 
 
 LoadedSamples = Dict[str, List[Dict[str, Any]]]
 SampleId = Tuple[str, int]
@@ -56,9 +59,16 @@ def parse_data_file(hyperparameters: Dict[str, Any],
         if language.startswith('python'):
             language = 'python'
 
+        assert len(raw_sample['docstring_tokens']) > 0
+        # print(per_code_language_metadata[language].keys())
         # the load_data_from_sample method call places processed data into sample, and
         # returns a boolean flag indicating if sample should be used
         function_name = raw_sample.get('func_name')
+        if len(function_name.split('.')) > 1:
+            function_name = function_name.split('.')[-1]
+        if not re.search(r'[a-zA-Z0-9]+', raw_sample['docstring']):
+            raw_sample['docstring_tokens'] = split_identifier_into_parts(
+                function_name)
         use_code_flag = code_encoder_class.load_data_from_sample("code",
                                                                  hyperparameters,
                                                                  per_code_language_metadata[language],
@@ -66,7 +76,7 @@ def parse_data_file(hyperparameters: Dict[str, Any],
                                                                  function_name,
                                                                  sample,
                                                                  is_test)
-        assert len(raw_sample['docstring_tokens']) > 0
+
         use_query_flag = query_encoder_class.load_data_from_sample("query",
                                                                    hyperparameters,
                                                                    query_metadata,
@@ -99,7 +109,7 @@ class Model(ABC):
             'margin': 1,
             'max_epochs': 500,
             'patience': 5,
-
+            # 'patience': 10,
             # Fraction of samples for which the query should be the function name instead of the docstring:
             'fraction_using_func_name': 0.1,
             # Only functions with a name at least this long will be candidates for training with the function name
@@ -124,6 +134,8 @@ class Model(ABC):
         # OrderedDict as we are using the order of languages a few times...
         self._code_encoders: OrderedDict[str, Any] = OrderedDict()
 
+#         self._shared_code_encoders: Any = None
+
         self._query_encoder_type = query_encoder_type
         self._query_encoder: Any = None
 
@@ -133,6 +145,9 @@ class Model(ABC):
 
         self._query_metadata: Dict[str, Any] = {}
         self._per_code_language_metadata: Dict[str, Any] = {}
+
+#         self._shared_code_language_metadata: Dict[str, Any] = {}
+
         self._placeholders: Dict[str, Union[tf.placeholder,
                                             tf.placeholder_with_default]] = {}
         self._ops: Dict[str, Any] = {}
@@ -152,6 +167,7 @@ class Model(ABC):
         else:
             self._log_save_dir = log_save_dir  # type: str
 
+        #config = tf.compat.v1.ConfigProto()
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         if "gpu_device_id" in self.hyperparameters:
@@ -159,6 +175,7 @@ class Model(ABC):
                 self.hyperparameters["gpu_device_id"])
 
         graph = tf.Graph()
+        #self._sess = tf.compat.v1.Session(graph=graph, config=config)
         self._sess = tf.Session(graph=graph, config=config)
 
         # save directory as tensorboard.
@@ -235,6 +252,7 @@ class Model(ABC):
         with self._sess.graph.as_default():
             random.seed(self.hyperparameters['seed'])
             np.random.seed(self.hyperparameters['seed'])
+            #tf.compat.v1.set_random_seed(self.hyperparameters['seed'])
             tf.set_random_seed(self.hyperparameters['seed'])
 
             self._make_model(is_train=is_train)
@@ -243,6 +261,10 @@ class Model(ABC):
                 self._make_training_step()
                 self._summary_writer = tf.summary.FileWriter(
                     self._tensorboard_dir, self._sess.graph)
+
+#             print('-'*100) 
+#             print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
+
 
     def _make_model(self, is_train: bool) -> None:
         """
@@ -473,6 +495,9 @@ class Model(ABC):
         raw_code_language_metadata_lists: DefaultDict[str, List] = defaultdict(
             list)
 
+#         print(self.hyperparameters)
+
+
         def metadata_parser_fn(_, file_path: RichPath) -> Iterable[Tuple[Dict[str, Any], Dict[str, Dict[str, Any]]]]:
             raw_query_metadata = self._query_encoder_type.init_metadata()
             per_code_language_metadata: DefaultDict[str, Dict[str, Any]] = defaultdict(
@@ -529,10 +554,19 @@ class Model(ABC):
 
         self._query_metadata = self._query_encoder_type.finalise_metadata(
             "query", self.hyperparameters, raw_query_metadata_list)
+
+#         raw_language_metadata_list = []
+
         for (language, raw_per_language_metadata) in raw_code_language_metadata_lists.items():
             self._per_code_language_metadata[language] = \
                 self._code_encoder_type.finalise_metadata(
                     "code", self.hyperparameters, raw_per_language_metadata, language)
+
+#             raw_language_metadata_list.extend(raw_per_language_metadata)
+
+        # self._shared_code_language_metadata = self._code_encoder_type.finalise_metadata(
+        #     'shared', self.hyperparameters, raw_language_metadata_list)
+
 
     def load_existing_metadata(self, metadata_path: RichPath):
         saved_data = metadata_path.read_by_file_suffix()
@@ -568,9 +602,9 @@ class Model(ABC):
                           is_test,
                           data_file)
                          for data_file in data_files]
-
+        assert parallelize
         if parallelize:
-            with multiprocessing.Pool() as pool:
+            with multiprocessing.Pool(64) as pool:
                 per_file_results = pool.starmap(parse_data_file, tasks_as_args)
         else:
             per_file_results = [parse_data_file(
@@ -836,6 +870,7 @@ class Model(ABC):
         samples_used_so_far = 0
         printed_one_line = False
         for minibatch_counter, (batch_data_dict, samples_in_batch, samples_used_so_far, _) in enumerate(data_generator):
+            # print(batch_data_dict.keys())
             if not quiet or (minibatch_counter % 100) == 99:
                 print("%s: Batch %5i (has %i samples). Processed %i samples. Loss so far: %.4f.  MRR so far: %.4f "
                       % (epoch_name, minibatch_counter, samples_in_batch,
@@ -1020,7 +1055,6 @@ class Model(ABC):
         computed_representations = []
         original_tensorised_data_ids = []  # type: List[SampleId]
         for minibatch_counter, (batch_data_dict, samples_in_batch, samples_used_so_far, batch_original_tensorised_data_ids) in enumerate(data_generator):
-            # print(model_representation_op)
             op_results = self._sess.run(
                 model_representation_op, feed_dict=batch_data_dict)
             # print(op_results.shape)
