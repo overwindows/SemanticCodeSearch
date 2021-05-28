@@ -255,8 +255,10 @@ class Model(ABC):
             self._make_loss()
             if is_train:
                 self._make_training_step()
-                self._summary_writer = tf.compat.v1.summary.FileWriter(
+                self._summary_writer = tf.summary.FileWriter(
                     self._tensorboard_dir, self._sess.graph)
+            print('-'*100) 
+            print(np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
 
     def _make_model(self, is_train: bool) -> None:
         """
@@ -455,7 +457,7 @@ class Model(ABC):
                                                   decay=self.hyperparameters['learning_rate_decay'],
                                                   momentum=self.hyperparameters['momentum'])
         elif optimizer_name == 'adam':
-            optimizer = tf.compat.v1.train.AdamOptimizer(
+            optimizer = tf.train.AdamOptimizer(
                 learning_rate=self.hyperparameters['learning_rate'])
         else:
             raise Exception('Unknown optimizer "%s".' %
@@ -553,8 +555,8 @@ class Model(ABC):
                     "code", self.hyperparameters, raw_per_language_metadata, language)
             raw_language_metadata_list.extend(raw_per_language_metadata)
 
-        self._shared_code_language_metadata = self._code_encoder_type.finalise_metadata(
-            'shared', self.hyperparameters, raw_language_metadata_list)
+        # self._shared_code_language_metadata = self._code_encoder_type.finalise_metadata(
+        #     'shared', self.hyperparameters, raw_language_metadata_list)
 
     def load_existing_metadata(self, metadata_path: RichPath):
         saved_data = metadata_path.read_by_file_suffix()
@@ -590,9 +592,9 @@ class Model(ABC):
                           is_test,
                           data_file)
                          for data_file in data_files]
-
+        assert parallelize
         if parallelize:
-            with multiprocessing.Pool() as pool:
+            with multiprocessing.Pool(64) as pool:
                 per_file_results = pool.starmap(parse_data_file, tasks_as_args)
         else:
             per_file_results = [parse_data_file(
