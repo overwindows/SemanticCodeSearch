@@ -29,6 +29,9 @@ python3 -m train --model neuralbow_v1
 ```
 The model will be trained for each language. The evaluation metric is MRR for validation and test sets, however, the output of prediction will be evaluated by GitHub using nDCG.
 
+### Model Downloads
+- [Hybrid Model](https://api.wandb.ai/files/wuchen/SemanticCodeSearch/1fpfl6dq/neuralbow_hybrid-2020-07-05-13-43-57_model_best.pkl.gz)
+
 ### Query the trained model
 Predict
 ```
