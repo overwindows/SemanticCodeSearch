@@ -53,11 +53,14 @@ npm install
 npm start
 ```
 
-<!--
-### ElasticSearch
-Check index
+### Citation
+Please cite as:
 ```
-curl -X GET 'http://localhost:9200/_cat/indices?v'
+@article{wu2022learning,
+  title={Learning Deep Semantic Model for Code Search using CodeSearchNet Corpus},
+  author={Wu, Chen and Yan, Ming},
+  journal={arXiv preprint arXiv:2201.11313},
+  year={2022}
+}
 ```
-Googl ScaNN
--->
+<!-- Googl ScaNN -->
