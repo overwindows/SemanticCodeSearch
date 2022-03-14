@@ -4,13 +4,14 @@ import json
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS, cross_origin
 from server.code_search import CodeSearch
-from server.code_trans import CodeTrans
+# Code Translation Model
+# from server.code_trans import CodeTrans 
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 CODESERACH = CodeSearch()
-CODETRANS = CodeTrans()
+# CODETRANS = CodeTrans()
 
 '''
 generator = None
@@ -78,7 +79,7 @@ if __name__ == "__main__":
     #parser = options.get_generation_parser(interactive=True)
     #args = options.parse_args_and_arch(parser)
     CODESERACH.load_model()
-    CODETRANS.load_model()
+    # CODETRANS.load_model()
     print('loading completed.')
     # codetrans.translate(python_code)
     # if args.spm:

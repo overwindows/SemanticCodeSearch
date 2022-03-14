@@ -10,3 +10,6 @@ parso
 pandas
 toolz
 flask
+flask_cors
+tensorflow
+annoy

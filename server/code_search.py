@@ -10,9 +10,9 @@ import pandas as pd
 
 from dataextraction.python.parse_python_data import tokenize_docstring_from_string
 from collections import namedtuple
-from fairseq import data, options, tasks, tokenizer, utils
-from fairseq.sequence_generator import SequenceGenerator
-from fairseq.utils import import_user_module
+# from fairseq import data, options, tasks, tokenizer, utils
+# from fairseq.sequence_generator import SequenceGenerator
+# from fairseq.utils import import_user_module
 from annoy import AnnoyIndex
 from docopt import docopt
 from dpu_utils.utils import RichPath
