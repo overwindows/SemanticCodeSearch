@@ -12,7 +12,7 @@ BPE tokenizer is used to encode both code strings and query strings(docstrings a
 Python package with scripts to prepare the data, train/test the model and predict.
 
 ## Data
-We use the data from the CodeSearchNet project. The downloaded data is around 20GB. For more details, please follow this [link](https://github.com/github/CodeSearchNet/tree/master/resources)
+We use the data from the CodeSearchNet project. The downloaded data is around 20GB. For more details, please follow this [link](https://github.com/github/CodeSearchNet/tree/master/resources).
 
 ## Training the model
 To install the reqiured dependencies
