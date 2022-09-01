@@ -56,6 +56,14 @@ npm start
 ### Citation
 Please cite as:
 ```
+@article{clement2021distilling,
+  title={Distilling Transformers for Neural Cross-Domain Search},
+  author={Clement, Colin B and Wu, Chen and Drain, Dawn and Sundaresan, Neel},
+  journal={arXiv preprint arXiv:2108.03322},
+  year={2021}
+}
+```
+```
 @article{wu2022learning,
   title={Learning Deep Semantic Model for Code Search using CodeSearchNet Corpus},
   author={Wu, Chen and Yan, Ming},
