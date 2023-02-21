@@ -3,15 +3,12 @@ import json
 
 from flask import Flask, abort, jsonify, request
 from flask_cors import CORS, cross_origin
-from server.code_search import CodeSearch
-# Code Translation Model
-# from server.code_trans import CodeTrans 
+from server.code_search import CodeSearch 
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 CODESERACH = CodeSearch()
-# CODETRANS = CodeTrans()
 
 '''
 generator = None
