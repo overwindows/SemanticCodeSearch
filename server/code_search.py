@@ -23,9 +23,9 @@ Translation = namedtuple('Translation', 'src_str hypos pos_scores alignments')
 
 
 class CodeSearch(object):
-    def __init__(self):
+    def __init__(self, model_path):
         self.args = None
-        self.local_model_path = '/home/overwindows/neuralbow_hybrid-2020-07-05-13-43-57_model_best.pkl.gz'
+        self.local_model_path = model_path
         self.indices = {}
         self.definitions = {}
         self.model = None
@@ -47,7 +47,7 @@ class CodeSearch(object):
                  })
         return predictions
 
-    def load_model(self):
+    def load_model(self, data_path):
         model_path = RichPath.create(self.local_model_path, None)
         print("Restoring model from %s" % model_path)
         self.model = model_restore_helper.restore(
@@ -55,19 +55,19 @@ class CodeSearch(object):
             is_train=False,
             hyper_overrides={})
 
-        # for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
-        for language in ['go']:
+        for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
+        # for language in ['ruby']:
             print("Loading language: %s" % language)
             """
             wget https://s3.amazonaws.com/code-search-net/CodeSearchNet/v2/{language}.zip
             """
             self.definitions[language] = pickle.load(
-                open('/home/overwindows/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
+                open(data_path+'/{}_dedupe_definitions_v2.pkl'.format(language), 'rb'))
 
-            if os.path.exists('/home/overwindows/{}.ann'.format(language)):
+            if os.path.exists(data_path+'/{}.ann'.format(language)):
                 self.indices[language] = AnnoyIndex(128, 'angular')
                 self.indices[language].load(
-                    '/home/overwindows/{}.ann'.format(language))
+                    data_path+'/{}.ann'.format(language))
             else:
                 indexes = [{'code_tokens': d['function_tokens'],
                             'language': d['language']} for d in tqdm(self.definitions[language])]
@@ -81,4 +81,4 @@ class CodeSearch(object):
                     self.indices[language].add_item(index, vector)
                 self.indices[language].build(1000)
                 self.indices[language].save(
-                    '/home/overwindows/{}.ann'.format(language))
+                    data_path+'/{}.ann'.format(language))
