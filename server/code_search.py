@@ -47,7 +47,7 @@ class CodeSearch(object):
                  })
         return predictions
 
-    def load_model(self, data_path):
+    def load_model(self, data_path, langs_list=None):
         model_path = RichPath.create(self.local_model_path, None)
         print("Restoring model from %s" % model_path)
         self.model = model_restore_helper.restore(
@@ -55,8 +55,8 @@ class CodeSearch(object):
             is_train=False,
             hyper_overrides={})
 
-        for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
-        # for language in ['ruby']:
+        # for language in ['python', 'go', 'javascript', 'java', 'php', 'ruby']:
+        for language in langs_list:
             print("Loading language: %s" % language)
             """
             wget https://s3.amazonaws.com/code-search-net/CodeSearchNet/v2/{language}.zip
